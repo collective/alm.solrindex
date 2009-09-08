@@ -190,8 +190,8 @@ class SolrConnectionManager(object):
     def __init__(self, solr_index):
         self.solr_uri = solr_index.solr_uri
         self._joined = False
-        self.connection = SolrConnection(solr_uri)
-        self.schema = SolrSchema(solr_uri)
+        self.connection = SolrConnection(self.solr_uri)
+        self.schema = SolrSchema(self.solr_uri)
 
     def set_changed(self):
         if not self._joined:

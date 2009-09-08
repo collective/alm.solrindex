@@ -4,6 +4,17 @@
     xmlns:five="http://namespaces.zope.org/five"
     >
 
+<adapter
+    for=".interfaces.ISolrIndex"
+    factory=".index.SolrConnectionManager"
+    provides=".interfaces.ISolrConnectionManager"
+    />
+
+<utility
+    factory=".components.DefaultQueryConverter"
+    provides=".interfaces.ISolrQueryConverter"
+    />
+
 <five:registerClass
     class=".index.SolrIndex"
     meta_type="SolrIndex"

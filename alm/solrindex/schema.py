@@ -19,13 +19,13 @@ class SolrSchema(object):
     defaultSearchField = None
 
     def __init__(self, solr_uri=None):
+        self.fields = []
         if solr_uri:
             f = self.download_from(solr_uri)
             try:
                 self.xml_init(f)
             finally:
                 f.close()
-        self.fields = []
 
     def download_from(self, solr_uri):
         """Get schema.xml from a running Solr instance"""

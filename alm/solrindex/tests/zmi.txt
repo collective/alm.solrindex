@@ -1,0 +1,33 @@
+
+alm.solrindex ZMI views
+=======================
+
+    >>> from Products.Five.testbrowser import Browser
+    >>> from Products.PloneTestCase.ptc import portal_owner
+    >>> from Products.PloneTestCase.ptc import default_password
+    >>> portal_url = self.portal.absolute_url()
+    >>> self.portal.error_log._ignored_exceptions = ()
+    >>> browser = Browser()
+    >>> browser.handleErrors = False
+    >>> browser.open(portal_url)
+    >>> browser.getControl(name='__ac_name').value = portal_owner
+    >>> browser.getControl(name='__ac_password').value = default_password
+    >>> browser.getControl(name='submit').click()
+    >>> "You are now logged in" in browser.contents
+    True
+
+Display the form for adding a Solr index.
+
+    >>> browser.open(portal_url + '/portal_catalog/manage_catalogIndexes')
+    >>> browser.getControl(name=':action').value = ['%2B/addSolrIndex.html']
+    >>> browser.getControl(name='submit').click()
+    >>> "Add Solr Index" in browser.contents
+    True
+
+Add the index.
+
+    >>> browser.getControl(name='id').value = 'solr'
+    >>> browser.getControl(name='solr_uri').value = 'http://localhost:8988/solr'
+    >>> browser.getControl(name='submit_add').click()
+    >>> "Index Added" in browser.contents
+    True
