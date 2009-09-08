@@ -38,11 +38,25 @@ Add Solr Index
     </td>
     <td align="left" valign="top">
     <div class="form-element">
+    <input class="form-element" type="checkbox" name="delete_redundant" />
+    <label for="delete_redundant">
+      Delete redundant indexes from the catalog
+    </label>
+    </div>
+    </td>
+  </tr>
+
+  <tr>
+    <td align="left" valign="top">
+    </td>
+    <td align="left" valign="top">
+    <div class="form-element">
     <input class="form-element" type="submit" name="submit_add"
      value=" Add " />
     </div>
     </td>
   </tr>
+  
 </table>
 </form>
 

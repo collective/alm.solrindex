@@ -213,11 +213,13 @@ class DummySchema:
 class DummyField:
     def __init__(self, name):
         self.name = name
-        self.query_converter = DummyQueryConverter()
+        self.handler = DummyFieldHandler()
 
-class DummyQueryConverter:
-    def __call__(self, field, field_query):
+class DummyFieldHandler:
+    def parse_query(self, field, field_query):
         return '%s:%s' % (field.name, field_query)
+    def convert(self, value):
+        return value
 
 class DummySolrResult:
     def __init__(self, numFound):

@@ -11,8 +11,15 @@
     />
 
 <utility
-    factory=".components.DefaultQueryConverter"
-    provides=".interfaces.ISolrQueryConverter"
+    factory=".handlers.DefaultFieldHandler"
+    provides=".interfaces.ISolrFieldHandler"
+    />
+
+<!-- Use DateFieldHandler for fields of Java class "solr.DateField" -->
+<utility
+    factory=".handlers.DateFieldHandler"
+    provides=".interfaces.ISolrFieldHandler"
+    name="solr.DateField"
     />
 
 <five:registerClass

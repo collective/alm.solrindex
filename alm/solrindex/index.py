@@ -2,7 +2,6 @@
 import Globals  # import Zope 2 dependencies in order
 
 from alm.solrindex.interfaces import ISolrConnectionManager
-from alm.solrindex.interfaces import ISolrIndexData
 from alm.solrindex.interfaces import ISolrIndex
 from alm.solrindex.interfaces import ISolrIndexingWrapper
 from alm.solrindex.schema import SolrSchema
@@ -13,7 +12,10 @@ from solr import SolrConnection
 from transaction.interfaces import IDataManager
 from zope.component import queryAdapter
 from zope.interface import implements
+import os
 import transaction
+
+disable_solr = 'DISABLE_SOLR' in os.environ
 
 
 class SolrIndex(SimpleItem):
@@ -23,14 +25,12 @@ class SolrIndex(SimpleItem):
     def __init__(self, id, solr_uri):
         self.id = id
         self.solr_uri = solr_uri
-        self.enable_indexing = True
-        self.enable_querying = True
-
-        # Test the connection
-        ISolrConnectionManager(self)
 
     @property
     def connection_manager(self):
+        if disable_solr:
+            raise AssertionError("Solr indexing is temporarily disabled")
+
         jar = self._p_jar
         oid = self._p_oid
         if jar is None or oid is None:
@@ -50,12 +50,18 @@ class SolrIndex(SimpleItem):
     def getIndexSourceNames(self):
         """Get a sequence of attribute names that are indexed by the index.
         """
+        if disable_solr:
+            return []
+
         cm = self.connection_manager
         names = [field.name for field in cm.schema.fields]
         return names
 
     def getEntryForObject(self, documentId, default=None):
         """Return the information stored for documentId"""
+        if disable_solr:
+            return None
+
         cm = self.connection_manager
         uniqueKey = cm.schema.uniqueKey
         response = cm.connection.query(
@@ -73,7 +79,7 @@ class SolrIndex(SimpleItem):
         'threshold' is the number of words to process between committing
         subtransactions.  If None, subtransactions are disabled.
         """
-        if not self.enable_indexing:
+        if disable_solr:
             return 0
 
         cm = self.connection_manager
@@ -89,10 +95,9 @@ class SolrIndex(SimpleItem):
             value = getattr(obj, name, None)
             if callable(value):
                 value = value()
+            value = field.handler.convert(value)
             if value is not None:
-                value = queryAdapter(value, ISolrIndexData, default=value)
-                if value is not None:
-                    values[name] = value
+                values[name] = value
 
         cm.set_changed()
         cm.connection.add(**values)
@@ -100,7 +105,7 @@ class SolrIndex(SimpleItem):
 
     def unindex_object(self, documentId):
         """Remove the documentId from the index."""
-        if not self.enable_indexing:
+        if disable_solr:
             return
 
         cm = self.connection_manager
@@ -116,7 +121,7 @@ class SolrIndex(SimpleItem):
 
         Returns None if request is not valid for this index.
         """
-        if not self.enable_querying:
+        if disable_solr:
             return None
 
         cm = self.connection_manager
@@ -126,7 +131,7 @@ class SolrIndex(SimpleItem):
 
         # extract Solr-specific parameters from the catalog query
         solr_params = {'fields': cm.schema.uniqueKey}
-        if self.id in request:
+        if request.has_key(self.id):
             solr_params.update(request[self.id])
             if 'q' in solr_params:
                 q_part = solr_params.pop('q')
@@ -140,10 +145,10 @@ class SolrIndex(SimpleItem):
         # generate a query string from field queries
         for field in cm.schema.fields:
             name = field.name
-            if name not in request:
+            if not request.has_key(name):
                 continue
             field_query = request[name]
-            q_part = field.query_converter(field, field_query)
+            q_part = field.handler.parse_query(field, field_query)
             if q_part is not None:
                 q.append(q_part)
                 queried.append(name)
@@ -171,6 +176,9 @@ class SolrIndex(SimpleItem):
 
     def indexSize(self):
         """Return the number of indexed objects"""
+        if disable_solr:
+            return 0
+
         cm = self.connection_manager
         uniqueKey = cm.schema.uniqueKey
         response = cm.connection.query(q='%s:[* TO *]' % uniqueKey, rows='0')
@@ -178,6 +186,9 @@ class SolrIndex(SimpleItem):
 
     def clear(self):
         """Empty the index"""
+        if disable_solr:
+            return
+
         cm = self.connection_manager
         cm.set_changed()
         uniqueKey = cm.schema.uniqueKey

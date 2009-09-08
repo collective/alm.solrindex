@@ -12,14 +12,6 @@ class ISolrIndex(IPluggableIndex):
     connection_manager = Attribute("""
         An ISolrConnectionManager that is specific to the ZODB connection.
         """)
-    enable_indexing = Attribute("""
-        True to enable indexing operations.  If false, Solr will not
-        be changed on catalog updates.
-        """)
-    enable_querying = Attribute("""
-        True to enable querying Solr.  If false, Solr will not be
-        consulted for queries.
-        """)
 
 
 class ISolrConnectionManager(Interface):
@@ -56,35 +48,45 @@ class ISolrField(Interface):
     stored = Attribute("True if the value of the field can be retrieved")
     required = Attribute("True if a value is required for indexing")
     multiValued = Attribute("True if the field supports multiple values")
-    query_converter = Attribute("An ISolrQueryConverter")
+    handler = Attribute("An ISolrFieldHandler")
 
 
-class ISolrQueryConverter(Interface):
-    """Convert part of a catalog query to Solr query text.
-
-    The returned text must include a prefix specifying the field name
-    to be queried, and some characters must be escaped according to
-    Lucene rules. For example, r'SearchableText:"I say \"potato\"\!"'.
-    See:
-
-        http://lucene.apache.org/java/2_4_0/queryparsersyntax.html
-        http://wiki.apache.org/solr/SolrQuerySyntax
+class ISolrFieldHandler(Interface):
+    """Adjust field input to fit Solr.
 
     Register instances providing this interface as utilities.
     Register by field name (most specific), Java class name (less
     specific), or no name (most general).
     """
-    def __call__(field, field_query):
-        """Covert the field query to Solr query text.
+    def parse_query(field, field_query):
+        """Convert a field-specific part of a catalog query to Solr query text.
 
         field is an ISolrField. field_query is the field-specific part
-        of the catalog query. Implementations will probably use the
-        parseIndexRequest class in Products.PluggableIndexes.common.util
-        for handling the various forms that a field query can take.
+        of the catalog query. Most implementations should extend
+        DefaultFieldHandler.
+
+        If the field query actually contains nothing to constrain the
+        search, this method should return None.
+
+        The returned text must include a prefix specifying the field name
+        to be queried, and some characters must be escaped according to
+        Lucene rules. For example, r'SearchableText:"I say \"potato\"\!"'.
+        See:
+
+            http://lucene.apache.org/java/2_4_0/queryparsersyntax.html
+            http://wiki.apache.org/solr/SolrQuerySyntax
 
         The returned query text must be a string or unicode. Before
-        passing the query to Solr, the query will be joined with other
-        query texts using ' AND '.
+        passing the query to Solr, SolrIndex will join the query with
+        other query texts using ' AND '.
+        """
+
+    def convert(value):
+        """Convert a field value to unicode for inclusion in Solr.
+
+        Return a unicode object or something that can be converted to
+        unicode using the unicode() builtin.  May return None to
+        indicate no data.
         """
 
 
@@ -97,18 +99,3 @@ class ISolrIndexingWrapper(Interface):
     exists, the SolrIndex pulls attribute values out of the object
     directly.
     """
-
-
-class ISolrIndexData(Interface):
-    """Optional data converter for indexing.
-
-    While indexing, the SolrIndex attempts to adapt every field
-    value to this interface.  If an adapter is found, the adapter
-    is used in place of the field value.
-    """
-
-    def __unicode__():
-        """Return the unicode representation of the value.
-
-        The unicode value will be added to an XML document.
-        """

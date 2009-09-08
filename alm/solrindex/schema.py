@@ -1,6 +1,6 @@
 
 from alm.solrindex.interfaces import ISolrField
-from alm.solrindex.interfaces import ISolrQueryConverter
+from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.interfaces import ISolrSchema
 from elementtree.ElementTree import parse
 from zope.component import getUtility
@@ -81,10 +81,10 @@ class SolrField(object):
                 value = {'true': True, 'false': False}[value.lower()]
             setattr(self, attr, value)
 
-        conv = queryUtility(ISolrQueryConverter, name=self.name)
-        if conv is None:
-            conv = queryUtility(
-                ISolrQueryConverter, name=self.java_class)
-            if conv is None:
-                conv = getUtility(ISolrQueryConverter)
-        self.query_converter = conv
+        handler = queryUtility(ISolrFieldHandler, name=self.name)
+        if handler is None:
+            handler = queryUtility(
+                ISolrFieldHandler, name=self.java_class)
+            if handler is None:
+                handler = getUtility(ISolrFieldHandler)
+        self.handler = handler

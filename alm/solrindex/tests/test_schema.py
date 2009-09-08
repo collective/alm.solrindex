@@ -52,10 +52,10 @@ class SolrSchemaTests(unittest.TestCase):
 
     def test_xml_init(self):
         import os
-        from alm.solrindex.interfaces import ISolrQueryConverter
+        from alm.solrindex.interfaces import ISolrFieldHandler
         from zope.component import getGlobalSiteManager
         getGlobalSiteManager().registerUtility(
-            DummyQueryConverter(), ISolrQueryConverter)
+            DummyFieldHandler(), ISolrFieldHandler)
 
         schema = self._makeOne()
         fn = os.path.join(os.path.dirname(__file__), 'schema.xml')
@@ -98,7 +98,5 @@ class SolrSchemaTests(unittest.TestCase):
         self.assertEqual(schema.fields[4].multiValued, True)
 
 
-class DummyQueryConverter:
-    def __call__(self, field, field_query):
-        return repr(field_query)
-
+class DummyFieldHandler:
+    pass
