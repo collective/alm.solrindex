@@ -62,15 +62,44 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         self.assert_(isinstance(q_item, unicode))
         self.assertEqual(q_item, u'dummyfield:"Hello \\"Solr\\"\\! \u30b7"')
 
+    def test_query_multiple_default_operator(self):
+        field = DummyField()
+        field_query = ['news', 'sports', '"local"']
+        handler = self._makeOne()
+        q_item = handler.parse_query(field, field_query)
+        self.assert_(isinstance(q_item, unicode))
+        self.assertEqual(q_item,
+            u'dummyfield:("news" OR "sports" OR "\\"local\\"")')
+
+    def test_query_multiple_and_operator(self):
+        field = DummyField()
+        field_query = {
+            'query': ['news', 'sports', '"local"'],
+            'operator': 'and',
+            }
+        handler = self._makeOne()
+        q_item = handler.parse_query(field, field_query)
+        self.assert_(isinstance(q_item, unicode))
+        self.assertEqual(q_item,
+            u'dummyfield:("news" AND "sports" AND "\\"local\\"")')
+
     def test_convert_none(self):
         handler = self._makeOne()
-        self.assertEqual(handler.convert(None), None)
+        self.assertEqual(handler.convert(None), ())
 
     def test_convert_string(self):
         handler = self._makeOne()
         actual = handler.convert('abc')
-        self.assert_(isinstance(actual, unicode))
-        self.assertEqual(actual, u'abc')
+        self.assertEqual(len(actual), 1)
+        self.assert_(isinstance(actual[0], unicode))
+        self.assertEqual(actual, [u'abc'])
+
+    def test_convert_multiple(self):
+        handler = self._makeOne()
+        actual = handler.convert(('abc', 'def'))
+        self.assertEqual(len(actual), 2)
+        self.assert_(isinstance(actual[0], unicode))
+        self.assertEqual(actual, [u'abc', u'def'])
 
 
 class DateFieldHandlerTests(unittest.TestCase):
@@ -94,38 +123,46 @@ class DateFieldHandlerTests(unittest.TestCase):
 
     def test_convert_none(self):
         handler = self._makeOne()
-        self.assertEqual(handler.convert(None), None)
+        self.assertEqual(handler.convert(None), ())
 
     def test_convert_datetime(self):
         import datetime
         handler = self._makeOne()
         actual = handler.convert(datetime.datetime(2009, 9, 8, 11, 51, 30))
-        self.assertEqual(actual, '2009-09-08T11:51:30.000Z')
+        self.assertEqual(actual, ['2009-09-08T11:51:30.000Z'])
 
     def test_convert_date(self):
         import datetime
         handler = self._makeOne()
         actual = handler.convert(datetime.date(2009, 9, 8))
-        self.assertEqual(actual, '2009-09-08T00:00:00.000Z')
+        self.assertEqual(actual, ['2009-09-08T00:00:00.000Z'])
+
+    def test_convert_multiple_dates(self):
+        import datetime
+        handler = self._makeOne()
+        actual = handler.convert(
+            [datetime.date(2009, 9, 8), datetime.date(2009, 9, 9)])
+        self.assertEqual(actual,
+            ['2009-09-08T00:00:00.000Z', '2009-09-09T00:00:00.000Z'])
 
     def test_convert_string(self):
         handler = self._makeOne()
         actual = handler.convert('September 8, 2009 11:51:31.512 AM UTC')
-        self.assertEqual(actual, '2009-09-08T11:51:31.512Z')
+        self.assertEqual(actual, ['2009-09-08T11:51:31.512Z'])
 
     def test_convert_float(self):
         import calendar
         t = calendar.timegm((2009, 9, 8, 11, 51, 32))
         handler = self._makeOne()
         actual = handler.convert(t)
-        self.assertEqual(actual, '2009-09-08T11:51:32.000Z')
+        self.assertEqual(actual, ['2009-09-08T11:51:32.000Z'])
 
     def test_convert_DateTime(self):
         from DateTime.DateTime import DateTime
         t = DateTime('2009-09-08 11:51:34.000 UTC')
         handler = self._makeOne()
         actual = handler.convert(t)
-        self.assertEqual(actual, '2009-09-08T11:51:34.000Z')
+        self.assertEqual(actual, ['2009-09-08T11:51:34.000Z'])
 
     def test_convert_other(self):
         handler = self._makeOne()

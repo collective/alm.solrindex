@@ -70,7 +70,7 @@ class SolrIndexTests(unittest.TestCase):
         index.index_object(2, DummyIndexableObject())
         self.assertTrue(cm.changed)
         self.assertEqual(cm.connection.added,
-            [{'f1': 'a', 'f2': 'b', 'docid': 2}])
+            [{'f1': ['a'], 'f2': ['b'], 'docid': 2}])
 
     def test_unindex_object(self):
         self._registerConnectionManager()
@@ -219,7 +219,7 @@ class DummyFieldHandler:
     def parse_query(self, field, field_query):
         return '%s:%s' % (field.name, field_query)
     def convert(self, value):
-        return value
+        return [value]
 
 class DummySolrResult:
     def __init__(self, numFound):

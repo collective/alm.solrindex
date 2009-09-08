@@ -19,41 +19,54 @@ def solr_escape(query):
 class DefaultFieldHandler(object):
     implements(ISolrFieldHandler)
 
+    operators = ('and', 'or')
+    default_operator = 'or'
+
     def parse_query(self, field, field_query):
         name = field.name
         request = {name: field_query}
-        record = parseIndexRequest(request, name, ('query',))
+        record = parseIndexRequest(request, name, ('query', 'operator'))
         if not record.keys:
             return None
 
         parts = []
         for part in record.keys:
-            part = self.convert(part)
-            if part:
-                parts.append(part)
-        query_str = u' '.join(parts)
-        if not query_str:
+            parts.extend(self.convert(part))
+        if not parts:
             return None
 
-        escaped = solr_escape(query_str)
-        return u'%s:"%s"' % (name, escaped)
+        if len(parts) == 1:
+            escaped = solr_escape(parts[0])
+            return u'%s:"%s"' % (name, escaped)
 
-    def convert(self, value):
-        if value is None:
-            return None
+        operator = record.get('operator', self.default_operator)
+        if operator not in self.operators:
+            raise AssertionError("Invalid operator: %s" % operator)
+
+        parts_fmt = [u'"%s"' % solr_escape(part) for part in parts]
+        s = (u' %s ' % operator.upper()).join(parts_fmt)
+        return u'%s:(%s)' % (name, s)
+
+    def convert(self, data):
+        if data is None:
+            return ()
+        if hasattr(data, '__iter__') and not isinstance(data, basestring):
+            data_seq = data
+        else:
+            data_seq = [data]
+        res = [self.convert_one(value) for value in data_seq]
+        return res
+
+    def convert_one(self, value):
         if isinstance(value, str):
-            return unicode(value, 'utf-8')
-        return unicode(value)
+            return value.decode('utf-8')
+        else:
+            return unicode(value)
 
 
 class DateFieldHandler(DefaultFieldHandler):
 
-    # TODO: try to match the query capabilities of PluginIndexes.DateIndex.
-
-    def convert(self, value):
-        if value is None:
-            return None
-
+    def convert_one(self, value):
         if isinstance(value, DateTime):
             t_tup = value.toZone('UTC').parts()
         elif isinstance(value, (float, int, long)):

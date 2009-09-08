@@ -95,9 +95,9 @@ class SolrIndex(SimpleItem):
             value = getattr(obj, name, None)
             if callable(value):
                 value = value()
-            value = field.handler.convert(value)
-            if value is not None:
-                values[name] = value
+            value_list = field.handler.convert(value)
+            if value_list:
+                values[name] = value_list
 
         cm.set_changed()
         cm.connection.add(**values)

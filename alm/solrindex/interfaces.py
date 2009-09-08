@@ -82,11 +82,11 @@ class ISolrFieldHandler(Interface):
         """
 
     def convert(value):
-        """Convert a field value to unicode for inclusion in Solr.
+        """Convert a field value to a list of unicode objects for Solr.
 
-        Return a unicode object or something that can be converted to
-        unicode using the unicode() builtin.  May return None to
-        indicate no data.
+        Return a list or tuple of unicode objects (or objects that have
+        a __unicode__ or __str__ method).  If there is no data,
+        return an empty list or tuple.
         """
 
 
