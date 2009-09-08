@@ -1,0 +1,23 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:five="http://namespaces.zope.org/five"
+    >
+
+<five:registerClass
+    class=".index.SolrIndex"
+    meta_type="SolrIndex"
+    addview="addSolrIndex.html"
+    permission="cmf.ManagePortal"
+    global="False"
+    />
+
+<browser:page
+    for="zope.app.container.interfaces.IAdding"
+    name="addSolrIndex.html"
+    template="addSolrIndex.pt"
+    class=".browser.SolrIndexAddView"
+    permission="cmf.ManagePortal"
+    />
+
+</configure>
