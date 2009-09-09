@@ -45,4 +45,7 @@
     permission="cmf.ManagePortal"
     />
 
+<!-- GenericSetup integration -->
+<adapter factory=".exportimport.SolrIndexNodeAdapter"/>
+
 </configure>

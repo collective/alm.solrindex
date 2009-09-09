@@ -18,6 +18,7 @@ class ISolrConnectionManager(Interface):
     """Provides a SolrConnection, schema info, and transaction integration"""
     connection = Attribute("An instance of solr.SolrConnection (from solrpy)")
     schema = Attribute("An ISolrSchema instance")
+    solr_uri = Attribute("The URI of the Solr server")
 
     def set_changed():
         """Adds the Solr connection to the current transaction.

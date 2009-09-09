@@ -6,6 +6,7 @@ from alm.solrindex.interfaces import ISolrIndex
 from alm.solrindex.interfaces import ISolrIndexingWrapper
 from alm.solrindex.schema import SolrSchema
 from BTrees.IIBTree import IIBTree, IISet
+from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from Products.PluginIndexes.common.util import parseIndexRequest
 from solr import SolrConnection
@@ -18,9 +19,12 @@ import transaction
 disable_solr = os.environ.get('DISABLE_SOLR')
 
 
-class SolrIndex(SimpleItem):
+class SolrIndex(PropertyManager, SimpleItem):
 
     implements(ISolrIndex)
+
+    _properties = ({'id': 'solr_uri', 'type': 'string', 'mode': 'w'},)
+    manage_options = PropertyManager.manage_options + SimpleItem.manage_options
 
     def __init__(self, id, solr_uri):
         self.id = id
@@ -41,7 +45,7 @@ class SolrIndex(SimpleItem):
             jar.foreign_connections = fc = {}
 
         manager = fc.get(oid)
-        if manager is None:
+        if manager is None or manager.solr_uri != self.solr_uri:
             manager = ISolrConnectionManager(self)
             fc[oid] = manager
 

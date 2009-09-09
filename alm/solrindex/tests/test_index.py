@@ -168,9 +168,18 @@ class SolrIndexTests(unittest.TestCase):
         self.assertTrue(cm.changed)
         self.assertEqual(cm.connection.delete_queries, ['docid:[* TO *]'])
 
+    def test_change_solr_uri(self):
+        self._registerConnectionManager()
+        index = self._makeOne('id', 'someuri')
+        cm1 = index.connection_manager
+        index.solr_uri = 'otheruri'
+        cm2 = index.connection_manager
+        self.assertFalse(cm1 is cm2)
+
 
 class DummyZODBConnection:
-    pass
+    def register(self, obj):
+        pass
 
 class DummyConnectionManager:
     def __init__(self, index):
@@ -178,6 +187,7 @@ class DummyConnectionManager:
         self.schema = DummySchema()
         self.connection = DummySolrConnection()
         self.changed = False
+        self.solr_uri = 'someuri'
 
     def set_changed(self):
         self.changed = True
