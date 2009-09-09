@@ -4,6 +4,11 @@
     xmlns:five="http://namespaces.zope.org/five"
     >
 
+<!-- GenericSetup integration -->
+<include file="profiles.zcml" />
+<adapter factory=".exportimport.SolrIndexNodeAdapter"/>
+
+
 <adapter
     for=".interfaces.ISolrIndex"
     factory=".index.SolrConnectionManager"
@@ -44,8 +49,5 @@
     class=".browser.SolrIndexAddView"
     permission="cmf.ManagePortal"
     />
-
-<!-- GenericSetup integration -->
-<adapter factory=".exportimport.SolrIndexNodeAdapter"/>
 
 </configure>

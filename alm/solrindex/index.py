@@ -23,10 +23,13 @@ class SolrIndex(PropertyManager, SimpleItem):
 
     implements(ISolrIndex)
 
-    _properties = ({'id': 'solr_uri', 'type': 'string', 'mode': 'w'},)
+    _properties = (
+        {'id': 'solr_uri', 'type': 'string', 'mode': 'w'},
+        )
     manage_options = PropertyManager.manage_options + SimpleItem.manage_options
+    _v_temp_cm = None  # An ISolrConnectionManager used during initialization
 
-    def __init__(self, id, solr_uri):
+    def __init__(self, id, solr_uri=''):
         self.id = id
         self.solr_uri = solr_uri
 
@@ -37,17 +40,22 @@ class SolrIndex(PropertyManager, SimpleItem):
 
         jar = self._p_jar
         oid = self._p_oid
+
         if jar is None or oid is None:
-            raise AssertionError("SolrIndex object not yet stored in ZODB")
+            # Not yet stored in ZODB, so use _v_temp_cm
+            manager = self._v_temp_cm
+            if manager is None or manager.solr_uri != self.solr_uri:
+                self._v_temp_cm = manager = ISolrConnectionManager(self)
 
-        fc = getattr(jar, 'foreign_connections', None)
-        if fc is None:
-            jar.foreign_connections = fc = {}
+        else:
+            fc = getattr(jar, 'foreign_connections', None)
+            if fc is None:
+                jar.foreign_connections = fc = {}
 
-        manager = fc.get(oid)
-        if manager is None or manager.solr_uri != self.solr_uri:
-            manager = ISolrConnectionManager(self)
-            fc[oid] = manager
+            manager = fc.get(oid)
+            if manager is None or manager.solr_uri != self.solr_uri:
+                manager = ISolrConnectionManager(self)
+                fc[oid] = manager
 
         return manager
 
@@ -131,22 +139,15 @@ class SolrIndex(PropertyManager, SimpleItem):
         cm = self.connection_manager
         q = []           # List of query texts to pass as "q"
         queried = []     # List of field names queried
-        callback = None  # Function to call with the Solr response object
+
+        solr_params = {'fields': cm.schema.uniqueKey}
 
         # extract Solr-specific parameters from the catalog query
-        solr_params = {'fields': cm.schema.uniqueKey}
-        if request.has_key(self.id):
-            d = request[self.id]
-            if isinstance(d, dict):
-                solr_params.update(d)
-                if 'q' in solr_params:
-                    q_part = solr_params.pop('q')
-                    q.append(q_part)
-                if 'callback' in solr_params:
-                    # Call a function with the Solr response object
-                    callback = solr_params.pop('callback')
-        else:
-            solr_params = {}
+        if request.has_key('solr_additional'):
+            solr_params.update(request['solr_additional'])
+            if 'q' in solr_params:
+                q_part = solr_params.pop('q')
+                q.append(q_part)
 
         # generate a query string from field queries
         for field in cm.schema.fields:
@@ -164,7 +165,9 @@ class SolrIndex(PropertyManager, SimpleItem):
 
         solr_params['q'] = ' AND '.join(q)
         response = cm.connection.query(**solr_params)
-        if callback is not None:
+        if request.has_key('solr_callback'):
+            # Call a function with the Solr response object
+            callback = request['solr_callback']
             callback(response)
 
         uniqueKey = cm.schema.uniqueKey

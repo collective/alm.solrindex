@@ -4,6 +4,12 @@ Changelog
 0.2 (xxxx-xx-xx)
 ----------------
 
+- Added a GenericSetup profile that replaces SearchableText
+  with a SolrIndex.
+
+- Renamed the catalog parameter for passing extra args to Solr
+  "solr_additional".  Also renamed the response callback
+  parameter to "solr_callback".
 
 0.1 (2009-09-09)
 ----------------
