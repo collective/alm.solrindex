@@ -100,3 +100,9 @@ class SolrSchemaTests(unittest.TestCase):
 
 class DummyFieldHandler:
     pass
+
+
+def test_suite():
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(SolrSchemaTests))
+    return suite

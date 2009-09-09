@@ -2,6 +2,8 @@
 alm.solrindex ZMI views
 =======================
 
+Log in as an administrator.
+
     >>> from Products.Five.testbrowser import Browser
     >>> from Products.PloneTestCase.ptc import portal_owner
     >>> from Products.PloneTestCase.ptc import default_password
@@ -31,3 +33,42 @@ Add the index.
     >>> browser.getControl(name='submit_add').click()
     >>> "Index Added" in browser.contents
     True
+
+Clear Solr.
+
+    >>> browser.getControl(name='ids:list').value = ['solr']
+    >>> browser.getControl(name='manage_clearIndex:method').click()
+    >>> "Index Cleared" in browser.contents
+    True
+    >>> portal.portal_catalog._catalog.indexes['solr'].indexSize()
+    0
+
+Recatalog everything.
+
+    >>> browser.open(portal_url + '/portal_catalog/manage_catalogAdvanced')
+    >>> browser.getControl(name='manage_catalogReindex:method').click()
+    >>> "Catalog Updated" in browser.contents
+    True
+
+Confirm the Solr index now has data.
+
+    >>> portal.portal_catalog._catalog.indexes['solr'].indexSize() > 0
+    True
+
+Start to delete everything from the index, but then abort the transaction.
+Confirm abort worked.
+
+    >>> portal.portal_catalog._catalog.indexes['solr'].clear()
+    >>> portal.portal_catalog._catalog.indexes['solr'].indexSize() > 0
+    True
+    >>> portal._p_jar.sync()
+    >>> portal.portal_catalog._catalog.indexes['solr'].indexSize() > 0
+    True
+
+Now delete everything and commit.
+
+    >>> portal.portal_catalog._catalog.indexes['solr'].clear()
+    >>> portal._p_jar.transaction_manager.commit()
+    >>> portal._p_jar.sync()
+    >>> portal.portal_catalog._catalog.indexes['solr'].indexSize()
+    0

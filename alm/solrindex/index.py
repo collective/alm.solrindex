@@ -182,7 +182,7 @@ class SolrIndex(SimpleItem):
         cm = self.connection_manager
         uniqueKey = cm.schema.uniqueKey
         response = cm.connection.query(q='%s:[* TO *]' % uniqueKey, rows='0')
-        return response.numFound
+        return int(response.numFound)
 
     def clear(self):
         """Empty the index"""
@@ -201,8 +201,16 @@ class SolrConnectionManager(object):
     def __init__(self, solr_index):
         self.solr_uri = solr_index.solr_uri
         self._joined = False
-        self.connection = SolrConnection(self.solr_uri)
+        self._connection = SolrConnection(self.solr_uri)
         self.schema = SolrSchema(self.solr_uri)
+
+    @property
+    def connection(self):
+        c = self._connection
+        if c is None:
+            c = SolrConnection(self.solr_uri)
+            self._connection = c
+        return c
 
     def set_changed(self):
         if not self._joined:
@@ -210,7 +218,13 @@ class SolrConnectionManager(object):
             self._joined = True
 
     def abort(self, transaction):
-        pass
+        try:
+            c = self._connection
+            if c is not None:
+                self._connection = None
+                c.close()
+        finally:
+            self._joined = False
 
     def tpc_begin(self, transaction):
         pass
@@ -219,7 +233,9 @@ class SolrConnectionManager(object):
         pass
 
     def tpc_vote(self, transaction):
-        pass
+        c = self._connection
+        if c is None:
+            raise AssertionError("Solr connection is closed")
 
     def tpc_finish(self, transaction):
         try:
@@ -233,10 +249,7 @@ class SolrConnectionManager(object):
             self._joined = False
 
     def tpc_abort(self, transaction):
-        try:
-            self.connection.close()
-        finally:
-            self._joined = False
+        pass
 
     def sortKey(self):
         return self.solr_uri

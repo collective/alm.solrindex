@@ -230,3 +230,8 @@ class DummyIndexableObject:
 
     def f2(self):
         return 'b'
+
+def test_suite():
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(SolrIndexTests))
+    return suite
