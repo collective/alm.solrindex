@@ -15,7 +15,7 @@ from zope.interface import implements
 import os
 import transaction
 
-disable_solr = 'DISABLE_SOLR' in os.environ
+disable_solr = os.environ.get('DISABLE_SOLR')
 
 
 class SolrIndex(SimpleItem):
@@ -132,13 +132,15 @@ class SolrIndex(SimpleItem):
         # extract Solr-specific parameters from the catalog query
         solr_params = {'fields': cm.schema.uniqueKey}
         if request.has_key(self.id):
-            solr_params.update(request[self.id])
-            if 'q' in solr_params:
-                q_part = solr_params.pop('q')
-                q.append(q_part)
-            if 'callback' in solr_params:
-                # Call a function with the Solr response object
-                callback = solr_params.pop('callback')
+            d = request[self.id]
+            if isinstance(d, dict):
+                solr_params.update(d)
+                if 'q' in solr_params:
+                    q_part = solr_params.pop('q')
+                    q.append(q_part)
+                if 'callback' in solr_params:
+                    # Call a function with the Solr response object
+                    callback = solr_params.pop('callback')
         else:
             solr_params = {}
 
@@ -242,8 +244,7 @@ class SolrConnectionManager(object):
             try:
                 self.connection.commit()
             except:
-                self.connection.close()
-                # we might want to clean up here
+                self.abort(transaction)
                 raise
         finally:
             self._joined = False

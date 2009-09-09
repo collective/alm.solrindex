@@ -1,24 +1,19 @@
 
+Misc notes
+----------
 
-This is an experimental module that provides a simple catalog index
-using Solr.  It works fine, but more thought needs to be put into it.
-For example, it needs query munging, load testing, and more Solr
-features.
+Part of the intent of this package is to create a clean division of
+responsibilities between ZCatalog and Solr. In this package, it is
+expected that an index is either in ZCatalog or Solr, not both. In
+collective.solr, the division is less clear because most ZCatalog
+indexes have to be duplicated in Solr.
 
-To enable it as-is:
+Troubleshooting
+---------------
 
-- Include this package in a configure.zcml.
+If the Solr index is preventing you from accessing Zope for some reason,
+you can set DISABLE_SOLR=YES in the environment, causing the Solr index
+to bypass Solr for all queries and updates.
 
-- Add the dependency "solrpy" to setup.py.
 
-- In schema.xml:
-
-    - Change the Solr schema to only have the fields "docid" and
-      "SearchableText".
-
-    - Set the uniqueKey to "docid".
-
-    - Make SearchableText the default field.
-
-    - Comment out the copyField directives.
 
