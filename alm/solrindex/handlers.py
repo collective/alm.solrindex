@@ -1,7 +1,10 @@
 
+"""Handlers for various Solr field types"""
+
 import Globals  # import Zope 2 dependencies in order
 
 from alm.solrindex.interfaces import ISolrFieldHandler
+from alm.solrindex.quotequery import quote_query
 from Products.PluginIndexes.common.util import parseIndexRequest
 from zope.interface import implements
 import re
@@ -13,6 +16,7 @@ from DateTime.DateTime import DateTime
 _escape_chars = re.compile(r'([-+&|!(){}\[\]^"~*?:\\])')
 
 def solr_escape(query):
+    """Escape all characters that have a special meaning to Solr"""
     return _escape_chars.sub(r'\\\1', query)
 
 
@@ -37,7 +41,7 @@ class DefaultFieldHandler(object):
 
         if len(parts) == 1:
             escaped = solr_escape(parts[0])
-            return u'%s:"%s"' % (name, escaped)
+            return u'+%s:"%s"' % (name, escaped)
 
         operator = record.get('operator', self.default_operator)
         if operator not in self.operators:
@@ -45,7 +49,7 @@ class DefaultFieldHandler(object):
 
         parts_fmt = [u'"%s"' % solr_escape(part) for part in parts]
         s = (u' %s ' % operator.upper()).join(parts_fmt)
-        return u'%s:(%s)' % (name, s)
+        return u'+%s:(%s)' % (name, s)
 
     def convert(self, data):
         if data is None:
@@ -84,3 +88,19 @@ class DateFieldHandler(DefaultFieldHandler):
 
         converted = '%04d-%02d-%02dT%02d:%02d:%06.3fZ' % t_tup[:6]
         return converted
+
+
+class TextFieldHandler(DefaultFieldHandler):
+
+    def parse_query(self, field, field_query):
+        name = field.name
+        request = {name: field_query}
+        record = parseIndexRequest(request, name, ('query',))
+        if not record.keys:
+            return None
+
+        query_str = ' '.join(record.keys)
+        if not query_str:
+            return None
+
+        return u'+%s:%s' % (name, quote_query(query_str))

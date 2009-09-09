@@ -17,8 +17,8 @@ class SolrEscapeTests(unittest.TestCase):
         self.assertEqual(self._callFUT(u'smile \u30b7'), u'smile \u30b7')
 
     def test_quotes(self):
-        self.assertEqual(self._callFUT(u'I am "misquoted"'),
-            u'I am \\"misquoted\\"')
+        self.assertEqual(self._callFUT(u'I am "quoted"'),
+            u'I am \\"quoted\\"')
 
     def test_all_escaped_characters(self):
         s = '\\:?*~"^][}{)(!|&+-'
@@ -52,7 +52,7 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         handler = self._makeOne()
         q_item = handler.parse_query(field, field_query)
         self.assert_(isinstance(q_item, unicode))
-        self.assertEqual(q_item, u'dummyfield:"hello"')
+        self.assertEqual(q_item, u'+dummyfield:"hello"')
 
     def test_escaped_query(self):
         field = DummyField()
@@ -60,7 +60,7 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         handler = self._makeOne()
         q_item = handler.parse_query(field, field_query)
         self.assert_(isinstance(q_item, unicode))
-        self.assertEqual(q_item, u'dummyfield:"Hello \\"Solr\\"\\! \u30b7"')
+        self.assertEqual(q_item, u'+dummyfield:"Hello \\"Solr\\"\\! \u30b7"')
 
     def test_query_multiple_default_operator(self):
         field = DummyField()
@@ -69,7 +69,7 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         q_item = handler.parse_query(field, field_query)
         self.assert_(isinstance(q_item, unicode))
         self.assertEqual(q_item,
-            u'dummyfield:("news" OR "sports" OR "\\"local\\"")')
+            u'+dummyfield:("news" OR "sports" OR "\\"local\\"")')
 
     def test_query_multiple_and_operator(self):
         field = DummyField()
@@ -81,7 +81,7 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         q_item = handler.parse_query(field, field_query)
         self.assert_(isinstance(q_item, unicode))
         self.assertEqual(q_item,
-            u'dummyfield:("news" AND "sports" AND "\\"local\\"")')
+            u'+dummyfield:("news" AND "sports" AND "\\"local\\"")')
 
     def test_convert_none(self):
         handler = self._makeOne()
@@ -169,6 +169,42 @@ class DateFieldHandlerTests(unittest.TestCase):
         self.assertRaises(TypeError, handler.convert, object())
 
 
+class TextFieldHandlerTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from alm.solrindex.handlers import TextFieldHandler
+        return TextFieldHandler
+
+    def _makeOne(self):
+        return self._getTargetClass()()
+
+    def test_verifyImplements(self):
+        from zope.interface.verify import verifyClass
+        from alm.solrindex.interfaces import ISolrFieldHandler
+        verifyClass(ISolrFieldHandler, self._getTargetClass())
+
+    def test_verifyProvides(self):
+        from zope.interface.verify import verifyObject
+        from alm.solrindex.interfaces import ISolrFieldHandler
+        verifyObject(ISolrFieldHandler, self._makeOne())
+
+    def test_simple(self):
+        field = DummyField()
+        field_query = u'alpha beta'
+        handler = self._makeOne()
+        q_item = handler.parse_query(field, field_query)
+        self.assert_(isinstance(q_item, unicode))
+        self.assertEqual(q_item, u'+dummyfield:(alpha beta)')
+
+    def test_simple(self):
+        field = DummyField()
+        field_query = u'(fun OR play) +with Solr^4'
+        handler = self._makeOne()
+        q_item = handler.parse_query(field, field_query)
+        self.assert_(isinstance(q_item, unicode))
+        self.assertEqual(q_item, u'+dummyfield:((fun OR play) +with Solr^4)')
+
+
 class DummyField:
     name = 'dummyfield'
 
@@ -177,4 +213,5 @@ def test_suite():
     suite.addTest(unittest.makeSuite(SolrEscapeTests))
     suite.addTest(unittest.makeSuite(DefaultFieldHandlerTests))
     suite.addTest(unittest.makeSuite(DateFieldHandlerTests))
+    suite.addTest(unittest.makeSuite(TextFieldHandlerTests))
     return suite

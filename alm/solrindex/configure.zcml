@@ -22,6 +22,13 @@
     name="solr.DateField"
     />
 
+<!-- Use TextFieldHandler for fields of Java class "solr.TextField" -->
+<utility
+    factory=".handlers.TextFieldHandler"
+    provides=".interfaces.ISolrFieldHandler"
+    name="solr.TextField"
+    />
+
 <five:registerClass
     class=".index.SolrIndex"
     meta_type="SolrIndex"
