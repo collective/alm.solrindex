@@ -91,7 +91,8 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(queried, ['f1'])
         self.assertEqual(dict(result.items()), {5: 0})
         self.assertFalse(cm.changed)
-        self.assertEqual(cm.connection.queries, [{'q': "f1:somequery"}])
+        self.assertEqual(cm.connection.queries, [
+            {'q': "f1:somequery", 'fields': 'docid'}])
 
     def test__apply_index_with_scores(self):
         self._registerConnectionManager()
@@ -103,7 +104,8 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(queried, ['f1'])
         self.assertEqual(dict(result.items()), {5: 250})
         self.assertFalse(cm.changed)
-        self.assertEqual(cm.connection.queries, [{'q': "f1:somequery"}])
+        self.assertEqual(cm.connection.queries, [
+            {'q': "f1:somequery", 'fields': 'docid'}])
 
     def test__apply_index_no_matching_fields(self):
         self._registerConnectionManager()
@@ -115,11 +117,11 @@ class SolrIndexTests(unittest.TestCase):
 
     def test__apply_index_extra_solr_params(self):
         self._registerConnectionManager()
-        index = self._makeOne('solr', 'someuri')
+        index = self._makeOne('id', 'someuri')
         cm = index.connection_manager
         request = {
             'f1': 'somequery',
-            'solr': {'q': 'stuff', 'spellcheck': 'true'},
+            'solr_additional': {'q': 'stuff', 'spellcheck': 'true'},
             }
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
@@ -139,7 +141,7 @@ class SolrIndexTests(unittest.TestCase):
         responses = []
         request = {
             'f1': 'somequery',
-            'solr': {'callback': responses.append},
+            'solr_callback': responses.append,
             }
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
