@@ -3,8 +3,6 @@
 import os
 from setuptools import setup, find_packages
 
-VERSION = '0.1dev'
-
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
@@ -23,10 +21,14 @@ long_description = (
     + '\n'
     )
 
+here = os.path.abspath(os.path.normpath(os.path.dirname(__file__)))
+version_txt = os.path.join(here, 'alm/solrindex/version.txt')
+alm_solrindex_version = open(version_txt).read().strip()
+
 tests_require=['zope.testing']
 
 setup(name='alm.solrindex',
-      version=VERSION,
+      version=alm_solrindex_version,
       description=__doc__,
       long_description=long_description,
       # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
