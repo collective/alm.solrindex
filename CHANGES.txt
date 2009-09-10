@@ -4,6 +4,14 @@ Changelog
 0.3 (xxxx-xx-xx)
 ----------------
 
+- Made field handlers more flexible.  Now they can add any
+  kind of query parameter to the Solr query.
+
+- The default field handler now generates "fq" parameters
+  instead of "q" parameters.  This seems to fit the intent of
+  the Solr authors much better.
+
+- Renamed "solr_additional" to "solr_params".
 
 0.2 (2009-09-09)
 ----------------

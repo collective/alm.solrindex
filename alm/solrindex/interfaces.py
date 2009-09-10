@@ -60,7 +60,7 @@ class ISolrFieldHandler(Interface):
     specific), or no name (most general).
     """
     def parse_query(field, field_query):
-        """Convert a field-specific part of a catalog query to Solr query text.
+        """Convert a field-specific part of a catalog query to Solr parameters.
 
         field is an ISolrField. field_query is the field-specific part
         of the catalog query. Most implementations should extend
@@ -69,10 +69,13 @@ class ISolrFieldHandler(Interface):
         If the field query actually contains nothing to constrain the
         search, this method should return None.
 
-        The returned text must include a prefix specifying the field name
-        to be queried, and some characters must be escaped according to
-        Lucene rules. For example, r'SearchableText:"I say \"potato\"\!"'.
-        See:
+        Return a mapping containing parameters to add to the request.
+        Each parameter value in the returned mapping must be either a
+        string or a sequence of strings.
+
+        Most parameter values should include a prefix specifying the
+        field name to be queried, and some characters must be escaped
+        according to Lucene rules. See:
 
             http://lucene.apache.org/java/2_4_0/queryparsersyntax.html
             http://wiki.apache.org/solr/SolrQuerySyntax

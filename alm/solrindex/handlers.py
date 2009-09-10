@@ -41,7 +41,7 @@ class DefaultFieldHandler(object):
 
         if len(parts) == 1:
             escaped = solr_escape(parts[0])
-            return u'+%s:"%s"' % (name, escaped)
+            return {'fq': u'%s:"%s"' % (name, escaped)}
 
         operator = record.get('operator', self.default_operator)
         if operator not in self.operators:
@@ -49,7 +49,7 @@ class DefaultFieldHandler(object):
 
         parts_fmt = [u'"%s"' % solr_escape(part) for part in parts]
         s = (u' %s ' % operator.upper()).join(parts_fmt)
-        return u'+%s:(%s)' % (name, s)
+        return {'fq': u'%s:(%s)' % (name, s)}
 
     def convert(self, data):
         if data is None:
@@ -103,4 +103,4 @@ class TextFieldHandler(DefaultFieldHandler):
         if not query_str:
             return None
 
-        return u'+%s:%s' % (name, quote_query(query_str))
+        return {'q': u'+%s:%s' % (name, quote_query(query_str))}

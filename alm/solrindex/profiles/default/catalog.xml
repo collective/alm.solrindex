@@ -4,4 +4,6 @@
  <index name="SearchableText" meta_type="SolrIndex">
   <property name="solr_uri">http://localhost:8983/solr</property>
  </index>
+ <index name="Title" remove="True"/>
+ <index name="Description" remove="True"/>
 </object>

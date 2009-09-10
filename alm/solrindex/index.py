@@ -13,10 +13,13 @@ from solr import SolrConnection
 from transaction.interfaces import IDataManager
 from zope.component import queryAdapter
 from zope.interface import implements
+import logging
 import os
 import transaction
 
 disable_solr = os.environ.get('DISABLE_SOLR')
+
+log = logging.getLogger(__name__)
 
 
 class SolrIndex(PropertyManager, SimpleItem):
@@ -112,6 +115,7 @@ class SolrIndex(PropertyManager, SimpleItem):
                 values[name] = value_list
 
         cm.set_changed()
+        log.debug("indexing %d", documentId)
         cm.connection.add(**values)
         return 1
 
@@ -122,6 +126,7 @@ class SolrIndex(PropertyManager, SimpleItem):
 
         cm = self.connection_manager
         cm.set_changed()
+        log.debug("unindexing %d", documentId)
         cm.connection.delete(documentId)
 
     def _apply_index(self, request, cid=''):
@@ -139,31 +144,46 @@ class SolrIndex(PropertyManager, SimpleItem):
         cm = self.connection_manager
         q = []           # List of query texts to pass as "q"
         queried = []     # List of field names queried
+        solr_params = {}
 
-        solr_params = {'fields': cm.schema.uniqueKey}
+        # Get the Solr parameters from the catalog query
+        if request.has_key('solr_params'):
+            solr_params.update(request['solr_params'])
 
-        # extract Solr-specific parameters from the catalog query
-        if request.has_key('solr_additional'):
-            solr_params.update(request['solr_additional'])
-            if 'q' in solr_params:
-                q_part = solr_params.pop('q')
-                q.append(q_part)
-
-        # generate a query string from field queries
+        # Include parameters from field queries
         for field in cm.schema.fields:
             name = field.name
             if not request.has_key(name):
                 continue
             field_query = request[name]
-            q_part = field.handler.parse_query(field, field_query)
-            if q_part is not None:
-                q.append(q_part)
+            field_params = field.handler.parse_query(field, field_query)
+            if field_params:
                 queried.append(name)
+                for k in field_params:
+                    to_add = field_params[k]
+                    if k not in solr_params:
+                        solr_params[k] = to_add
+                    else:
+                        # add to the list
+                        v = solr_params[k]
+                        if not isinstance(v, list):
+                            v = [v]
+                            solr_params[k] = v
+                        if isinstance(to_add, basestring):
+                            v.append(to_add)
+                        else:
+                            v.extend(to_add)
 
-        if not q:
+        if not solr_params:
             return None
 
-        solr_params['q'] = ' AND '.join(q)
+        solr_params['fields'] = cm.schema.uniqueKey
+        if not solr_params.get('q'):
+            # Solr requires a 'q' parameter, so provide an all-inclusive one
+            solr_params['q'] = '*:*'
+
+        log.debug("querying: %r", solr_params)
+
         response = cm.connection.query(**solr_params)
         if request.has_key('solr_callback'):
             # Call a function with the Solr response object

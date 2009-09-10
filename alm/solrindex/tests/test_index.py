@@ -121,7 +121,7 @@ class SolrIndexTests(unittest.TestCase):
         cm = index.connection_manager
         request = {
             'f1': 'somequery',
-            'solr_additional': {'q': 'stuff', 'spellcheck': 'true'},
+            'solr_params': {'q': 'stuff', 'spellcheck': 'true'},
             }
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
@@ -129,7 +129,7 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(dict(result.items()), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
-                'q': 'stuff AND f1:somequery',
+                'q': ['stuff', 'f1:somequery'],
                 'fields': 'docid',
                 'spellcheck': 'true',
                 }])
@@ -229,7 +229,7 @@ class DummyField:
 
 class DummyFieldHandler:
     def parse_query(self, field, field_query):
-        return '%s:%s' % (field.name, field_query)
+        return {'q': '%s:%s' % (field.name, field_query)}
     def convert(self, value):
         return [value]
 
