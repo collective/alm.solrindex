@@ -1,7 +1,11 @@
 Changelog
 =========
 
-0.4 (xxxx-xx-xx)
+0.5 (xxxx-xx-xx)
+----------------
+
+
+0.4 (2009-09-10)
 ----------------
 
 - Purge Solr when importing a SolrIndex via GenericSetup.
