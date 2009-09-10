@@ -1,7 +1,11 @@
 Changelog
 =========
 
-0.3 (xxxx-xx-xx)
+0.4 (xxxx-xx-xx)
+----------------
+
+
+0.3 (2009-09-10)
 ----------------
 
 - Made field handlers more flexible.  Now they can add any
