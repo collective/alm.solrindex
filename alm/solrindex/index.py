@@ -5,11 +5,11 @@ from alm.solrindex.interfaces import ISolrConnectionManager
 from alm.solrindex.interfaces import ISolrIndex
 from alm.solrindex.interfaces import ISolrIndexingWrapper
 from alm.solrindex.schema import SolrSchema
+from alm.solrindex.solrpycore import SolrConnection
 from BTrees.IIBTree import IIBTree, IISet
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from Products.PluginIndexes.common.util import parseIndexRequest
-from solr import SolrConnection
 from transaction.interfaces import IDataManager
 from zope.component import queryAdapter
 from zope.interface import implements

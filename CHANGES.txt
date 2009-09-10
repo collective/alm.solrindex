@@ -6,6 +6,14 @@ Changelog
 
 - Added a script that waits for Solr to start up.
 
+- Brought in a private copy of solrpy to fix some bugs:
+
+  - The connection retry code reconnected, but wasn't
+    actually retrying the request.
+
+  - The raw_query method should not assume the parameter
+    values are unicode (they could be lists of unicode).
+
 0.4 (2009-09-10)
 ----------------
 

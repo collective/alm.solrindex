@@ -48,7 +48,7 @@ setup(name='alm.solrindex',
       zip_safe=False,
       install_requires=[
         'setuptools',
-        'solrpy',
+        #'solrpy',  # we have a private copy until solrpy fixes some bugs
         ],
       tests_require=tests_require,
       extras_require=dict(tests=tests_require),

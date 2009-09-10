@@ -636,7 +636,7 @@ class SolrConnection:
         """
 
         # Clean up optional parameters to match SOLR spec.
-        params = dict([(key.replace('_','.'), unicode(value))
+        params = dict([(key.replace('_','.'), value)
                        for key, value in params.items()])
 
         request = urllib.urlencode(params, doseq=True)
@@ -721,7 +721,7 @@ class SolrConnection:
                 self.conn.sock.sock.settimeout(self.timeout)
 
     def _post(self, url, body, headers):
-        attempts = 1
+        attempts = 2  # allow up to 2 attempts
         while attempts:
             try:
                 self.conn.request('POST', url, body.encode('UTF-8'), headers)
