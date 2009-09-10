@@ -4,6 +4,7 @@ Changelog
 0.4 (xxxx-xx-xx)
 ----------------
 
+- Purge Solr when importing a SolrIndex via GenericSetup.
 
 0.3 (2009-09-10)
 ----------------

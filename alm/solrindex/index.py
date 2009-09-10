@@ -220,8 +220,7 @@ class SolrIndex(PropertyManager, SimpleItem):
 
         cm = self.connection_manager
         cm.set_changed()
-        uniqueKey = cm.schema.uniqueKey
-        cm.connection.delete_query('%s:[* TO *]' % uniqueKey)
+        cm.connection.delete_query('*:*')
 
 
 class SolrConnectionManager(object):

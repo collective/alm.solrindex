@@ -7,7 +7,7 @@ from Products.Five import zcml
 
 _SOLRINDEX_XML = """\
 <index name="Solr" meta_type="SolrIndex">
- <property name="solr_uri">http://example.com:8983/solr</property>
+ <property name="solr_uri">http://localhost:8988/solr</property>
 </index>
 """
 
@@ -31,7 +31,7 @@ class SolrIndexNodeAdapterTests(NodeAdapterTestCase):
     def setUp(self):
         from alm.solrindex.index import SolrIndex
         NodeAdapterTestCase.setUp(self)
-        self._obj = SolrIndex('Solr', 'http://example.com:8983/solr')
+        self._obj = SolrIndex('Solr', 'http://localhost:8988/solr')
         self._XML = _SOLRINDEX_XML
 
 

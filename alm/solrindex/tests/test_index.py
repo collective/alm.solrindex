@@ -168,7 +168,7 @@ class SolrIndexTests(unittest.TestCase):
         self.assertFalse(cm.changed)
         index.clear()
         self.assertTrue(cm.changed)
-        self.assertEqual(cm.connection.delete_queries, ['docid:[* TO *]'])
+        self.assertEqual(cm.connection.delete_queries, ['*:*'])
 
     def test_change_solr_uri(self):
         self._registerConnectionManager()
