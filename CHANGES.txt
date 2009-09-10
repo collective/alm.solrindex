@@ -4,6 +4,7 @@ Changelog
 0.5 (xxxx-xx-xx)
 ----------------
 
+- Added a script that waits for Solr to start up.
 
 0.4 (2009-09-10)
 ----------------

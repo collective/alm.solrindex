@@ -53,4 +53,8 @@ setup(name='alm.solrindex',
       tests_require=tests_require,
       extras_require=dict(tests=tests_require),
       test_suite = 'alm.solrindex.tests.test_suite',
+      entry_points = """\
+      [console_scripts]
+      waituri = alm.solrindex.scripts.waituri:main
+      """
       )
