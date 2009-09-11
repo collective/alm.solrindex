@@ -1,3 +1,4 @@
+"""SolrIndex and SolrConnectionManager"""
 
 import Globals  # import Zope 2 dependencies in order
 

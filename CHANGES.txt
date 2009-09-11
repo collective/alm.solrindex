@@ -4,6 +4,7 @@ Changelog
 0.6 (xxxx-xx-xx)
 ----------------
 
+- Added narrative documentation.
 
 0.5 (2009-09-10)
 ----------------

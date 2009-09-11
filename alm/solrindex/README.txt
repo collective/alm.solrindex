@@ -35,9 +35,16 @@ other ZCatalog indexes.  For example::
 
     results = portal.portal_catalog(Description={'query': 'waldo'})
 
+Queries of this form pass through a configurable translation layer made
+of field handler objects. When you need more flexibility than the field
+handlers provide, you can either write your own field handlers (see the
+"Writing Your Own Field Handlers" section) or you can provide Solr
+parameters that do not get translated (see the "Translucent Solr
+Queries" section).
 
-Querying Solr Through ZCatalog Queries
---------------------------------------
+
+Translucent Solr Queries
+------------------------
 
 You can issue a Solr query through a ZCatalog containing a SolrIndex by
 providing a "solr_params" dictionary in the ZCatalog query. For
@@ -47,12 +54,19 @@ will query Solr::
     results = portal.portal_catalog(solr_params={'q': 'waldo'})
 
 The SolrIndex in the catalog will issue the query parameters specified
-in "solr_params" to Solr. The parameters passed to Solr may be mixed
-with parameters generated for other fields. Solr will return to the
-SolrIndex a list of matching document IDs and scores, the SolrIndex
-will pass the document IDs and scores to ZCatalog, then ZCatalog will
-intersect the document IDs with results from other indexes. Finally,
-ZCatalog will return a sorted list of result objects ("brain" objects).
+in "solr_params" to Solr. Each parameter value can be a string
+(including unicode) or a list of strings. If you provide query
+parameters for other Solr fields, the parameters passed to Solr will be
+mixed with parameters generated for the other fields.  Note that Solr
+requires some value for the 'q' parameter, so if you provide Solr
+parameters but no value for 'q', SolrIndex will supply '*:*' as the
+value for 'q'.
+
+Solr will return to the SolrIndex a list of matching document IDs and
+scores, then the SolrIndex will pass the document IDs and scores to
+ZCatalog, then ZCatalog will intersect the document IDs with results
+from other indexes. Finally, ZCatalog will return a sorted list of
+result objects ("brain" objects) to application code.
 
 If you need access to the Solr response object, provide a
 ``solr_callback`` function in the catalog query. After Solr sends its
@@ -67,15 +81,27 @@ Sorting
 SolrIndex only provides document IDs and scores, while ZCatalog retains
 the reponsibility for sorting the results. To sort the results from a
 query involving SolrIndex, use the "sort_on" parameter like you
-normally would with ZCatalog.
+normally would with ZCatalog. At this time, you can not use a SolrIndex
+as the index to sort on, but that could change in the future.
 
 
 Writing Your Own Field Handlers
 -------------------------------
 
-Field handlers serve two functions.  They parse object attributes
-for indexing, and they translate field-specific catalog queries to
-Solr queries. [...]
+Field handlers serve two functions. They parse object attributes for
+indexing, and they translate field-specific catalog queries to Solr
+queries. They are registered as utilities, so you can write your own
+handlers and register them using ZCML.
+
+To determine the field handler for a Solr field, alm.solrindex first
+looks for an ISolrFieldHandler utility with a name matching the field
+name. If it doesn't find one, it looks for an ISolrFieldHandler utility
+with a name matching the name of the Java class that handles the field
+in Solr. If that also fails, it retrieves the ISolrFieldHandler with no
+name.
+
+See the documentation of the ISolrFieldHandler interface and the examples
+in handlers.py.
 
 
 Integration with ZCatalog
@@ -92,11 +118,9 @@ on the excellent transaction-aware object cache provided by ZODB. This
 gives them certain inherent performance advantages over network bound
 search engines like Solr. Any communication with Solr incurs a delay on
 the order of a millisecond, while a ZCatalog index can often answer a
-query in a few microseconds.
-
-ZCatalog indexes also simplify cluster design. The ZODB cache allows
-cluster nodes to perform searches without relying on a large central
-search engine.
+query in a few microseconds. ZCatalog indexes also simplify cluster
+design. The ZODB cache allows cluster nodes to perform searches without
+relying on a large central search engine.
 
 Where ZCatalog indexes currently fall short, however, is in the realm
 of indexing text. None of the text indexes available for ZCatalog match
@@ -115,13 +139,16 @@ This package uses a new method of maintaining an external database
 connection from a ZODB object. Previous approaches included storing
 ``_v_`` (volatile) attributes, keeping connections in a thread local
 variable, and reusing the multidatabase support inside ZODB, but
-those approaches each had significant pitfalls.
+those approaches each have significant drawbacks.
 
 The new method is to add dictionary called ``foreign_connections`` to
 the ZODB Connection object (the _p_jar attribute of any persisted
 object). Each key in the dictionary is the OID of the object that needs
 to maintain a persistent connection. Each value is an
-implementation-dependent database connection or connection wrapper.
+implementation-dependent database connection or connection wrapper. If
+it is possible to write to the external database, the database
+connection or connection wrapper should implement the ``IDataManager``
+interface so that it can be included in transaction commit or abort.
 
 When a SolrIndex needs a connection to Solr, it first looks in the
 ``foreign_connections`` dictionary to see if a connection has already
@@ -132,11 +159,12 @@ shared by concurrent threads, making this a thread safe solution.
 
 This solution is better than _v_ attributes because connections will
 not be dropped due to ordinary object deactivation. This solution is
-better than thread local variables because it does not break when you
-pass control between threads. This solution is better than using
-multidatabase support because participants in a multidatabase are
-required to fulfill a complex contract that is irrelevant to databases
-other than ZODB.
+better than thread local variables because it allows the object
+database to hold any number of external connections and it does not
+break when you pass control between threads. This solution is better
+than using multidatabase support because participants in a
+multidatabase are required to fulfill a complex contract that is
+irrelevant to databases other than ZODB.
 
 Other packages that maintain an external database connection should try
 out this scheme to see if it improves reliability or readability. Other
@@ -144,11 +172,18 @@ packages should use the same ZODB Connection attribute name,
 ``foreign_connections``, which should not cause any clashes, since
 OIDs can not be shared.
 
+An implementation note: when ZODB objects are first created, they are
+not stored in any database, so there is no simple way for the object to
+get a foreign_connections dictionary. During that time, one way to hold
+a database connection is to temporarily fall back to the volatile
+attribute solution. That is what SolrIndex does (see the ``_v_temp_cm``
+attribute).
+
 
 Troubleshooting
 ---------------
 
 If the Solr index is preventing you from accessing Zope for some reason,
-you can set DISABLE_SOLR=YES in the environment, causing the Solr index
-to bypass Solr for all queries and updates.
+you can set DISABLE_SOLR=YES in the environment, causing the SolrIndex
+class to bypass Solr for all queries and updates.
 

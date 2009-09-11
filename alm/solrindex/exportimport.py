@@ -8,7 +8,7 @@ from zope.component import adapts
 
 class SolrIndexNodeAdapter(NodeAdapterBase, PropertyManagerHelpers):
 
-    """Node importer and exporter for SolrIndex.
+    """GenericSetup node importer and exporter for SolrIndex.
     """
 
     adapts(ISolrIndex, ISetupEnviron)

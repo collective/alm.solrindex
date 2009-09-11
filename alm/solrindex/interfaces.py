@@ -15,7 +15,11 @@ class ISolrIndex(IPluggableIndex):
 
 
 class ISolrConnectionManager(Interface):
-    """Provides a SolrConnection, schema info, and transaction integration"""
+    """Provides a SolrConnection, schema info, and transaction integration.
+
+    An instance of this class gets stored in the foreign_connections
+    attribute of a ZODB connection.
+    """
     connection = Attribute("An instance of solr.SolrConnection (from solrpy)")
     schema = Attribute("An ISolrSchema instance")
     solr_uri = Attribute("The URI of the Solr server")
@@ -71,7 +75,10 @@ class ISolrFieldHandler(Interface):
 
         Return a mapping containing parameters to add to the request.
         Each parameter value in the returned mapping must be either a
-        string or a sequence of strings.
+        string or a sequence of strings. Note that Solr accepts a list
+        of values for every parameter, so SolrIndex will simply pass to
+        Solr all of the parameter values provided by every field
+        handler.
 
         Most parameter values should include a prefix specifying the
         field name to be queried, and some characters must be escaped
