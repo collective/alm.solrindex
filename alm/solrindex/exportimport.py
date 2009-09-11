@@ -27,7 +27,4 @@ class SolrIndexNodeAdapter(NodeAdapterBase, PropertyManagerHelpers):
             self._purgeProperties()
         self._initProperties(node)
 
-        # Clear the Solr index
-        self.context.clear()
-
     node = property(_exportNode, _importNode)

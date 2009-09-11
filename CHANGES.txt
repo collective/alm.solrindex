@@ -6,6 +6,10 @@ Changelog
 
 - Added narrative documentation.
 
+- Don't clear the index when running GenericSetup.  Clearing
+  indexes turns out to be a long-standing problem with GenericSetup;
+  in this case the easy solution is to just not clear it.
+
 0.5 (2009-09-10)
 ----------------
 
