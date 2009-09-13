@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.7 (xxxx-xx-xx)
+0.7 (2009-09-13)
 ----------------
 
 - The Solr URI can now be provided by an environment variable,
