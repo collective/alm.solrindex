@@ -28,14 +28,39 @@ class SolrIndex(PropertyManager, SimpleItem):
     implements(ISolrIndex)
 
     _properties = (
-        {'id': 'solr_uri', 'type': 'string', 'mode': 'w'},
+        {'id': 'solr_uri_static', 'type': 'string', 'mode': 'w',
+            'description':
+            'The Solr URI, for example, "http://localhost:8983/solr". '
+            'You should leave this empty if you set solr_uri_env_var.'},
+        {'id': 'solr_uri_env_var', 'type': 'string', 'mode': 'w',
+            'description':
+            'The name of an environment variable that will provide '
+            'the Solr URI.  Ignored if solr_uri_static is non-empty.'},
+        {'id': 'solr_uri', 'type': 'string', 'mode': '',
+            'description': 'The effective Solr URI (read-only)'},
         )
-    manage_options = PropertyManager.manage_options + SimpleItem.manage_options
-    _v_temp_cm = None  # An ISolrConnectionManager used during initialization
 
-    def __init__(self, id, solr_uri=''):
+    manage_options = PropertyManager.manage_options + SimpleItem.manage_options
+
+    _v_temp_cm = None  # An ISolrConnectionManager used during initialization
+    solr_uri_static = ''
+    solr_uri_env_var = ''
+
+    def __init__(self, id, solr_uri_static=''):
         self.id = id
-        self.solr_uri = solr_uri
+        self.solr_uri_static = solr_uri_static
+
+    @property
+    def solr_uri(self):
+        if self.solr_uri_static:
+            return self.solr_uri_static
+        elif self.solr_uri_env_var:
+            return os.environ[self.solr_uri_env_var]
+        elif 'solr_uri' in self.__dict__:
+            # b/w compat
+            return self.__dict__['solr_uri']
+        else:
+            raise ValueError("No Solr URI provided")
 
     @property
     def connection_manager(self):
@@ -210,8 +235,7 @@ class SolrIndex(PropertyManager, SimpleItem):
             return 0
 
         cm = self.connection_manager
-        uniqueKey = cm.schema.uniqueKey
-        response = cm.connection.query(q='%s:[* TO *]' % uniqueKey, rows='0')
+        response = cm.connection.query(q='*:*', rows='0')
         return int(response.numFound)
 
     def clear(self):

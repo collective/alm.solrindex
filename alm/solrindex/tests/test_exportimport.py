@@ -7,7 +7,8 @@ from Products.Five import zcml
 
 _SOLRINDEX_XML = """\
 <index name="Solr" meta_type="SolrIndex">
- <property name="solr_uri">http://localhost:8988/solr</property>
+ <property name="solr_uri_static">http://localhost:8988/solr</property>
+ <property name="solr_uri_env_var"></property>
 </index>
 """
 

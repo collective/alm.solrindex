@@ -4,6 +4,8 @@ Changelog
 0.7 (xxxx-xx-xx)
 ----------------
 
+- The Solr URI can now be provided by an environment variable,
+  so that catalog.xml does not need to hard code the URI.
 
 0.6 (2009-09-11)
 ----------------

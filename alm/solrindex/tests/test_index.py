@@ -14,10 +14,8 @@ class SolrIndexTests(unittest.TestCase):
         from alm.solrindex.index import SolrIndex
         return SolrIndex
 
-    def _makeOne(self, id, solr_uri):
-        obj = self._getTargetClass()(id, solr_uri)
-        obj._p_oid = '8byteoid'
-        obj._p_jar = DummyZODBConnection()
+    def _makeOne(self, id, solr_uri_static=''):
+        obj = self._getTargetClass()(id, solr_uri_static)
         return obj
 
     def _registerConnectionManager(self):
@@ -174,9 +172,41 @@ class SolrIndexTests(unittest.TestCase):
         self._registerConnectionManager()
         index = self._makeOne('id', 'someuri')
         cm1 = index.connection_manager
-        index.solr_uri = 'otheruri'
+        index.solr_uri_static = 'otheruri'
         cm2 = index.connection_manager
         self.assertFalse(cm1 is cm2)
+
+    def test_get_solr_connection_from_zodb(self):
+        self._registerConnectionManager()
+        index = self._makeOne('id', 'someuri')
+        index._p_oid = '8byteoid'
+        index._p_jar = zodbc = DummyZODBConnection()
+        cm = index.connection_manager
+        self.assertEqual(len(zodbc.foreign_connections), 1)
+        self.assert_(zodbc.foreign_connections['8byteoid'] is cm)
+
+    def test_get_static_solr_uri(self):
+        index = self._makeOne('id', 'someuri')
+        self.assertEqual(index.solr_uri, 'someuri')
+
+    def test_get_solr_uri_from_environment(self):
+        import os
+        index = self._makeOne('id')
+        index.solr_uri_env_var = 'TEST_SOLR_URI'
+        os.environ['TEST_SOLR_URI'] = 'some-uri-from-env'
+        try:
+            self.assertEqual(index.solr_uri, 'some-uri-from-env')
+        finally:
+            del os.environ['TEST_SOLR_URI']
+
+    def test_get_bw_compat_solr_uri(self):
+        index = self._makeOne('id', '')
+        index.__dict__['solr_uri'] = 'bw-compat-uri'
+        self.assertEqual(index.solr_uri, 'bw-compat-uri')
+
+    def test_no_solr_uri_specified(self):
+        index = self._makeOne('id', '')
+        self.assertRaises(ValueError, getattr, index, 'solr_uri')
 
 
 class DummyZODBConnection:
