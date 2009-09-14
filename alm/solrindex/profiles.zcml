@@ -4,9 +4,9 @@
 
   <genericsetup:registerProfile
       name="default"
-      title="alm.solrindex"
+      title="alm.solrindex default (get SOLR_URI from environment)"
       directory="profiles/default"
-      description=""
+      description="Use Solr for SearchableText, Title, and Description. Expect SOLR_URI in the environment."
       provides="Products.GenericSetup.interfaces.EXTENSION"
       />
 
