@@ -4,7 +4,14 @@ Changelog
 0.8 (xxxx-xx-xx)
 ----------------
 
-- Added support for Solr boolean fields
+- Added support for Solr boolean fields.
+
+- GenericSetup profiles now have the option of clearing the
+  index.
+
+- Made the waituri script wait up to 90 seconds by default,
+  pause a little more between polls, and accept a timeout
+  parameter.
 
 0.7 (2009-09-13)
 ----------------
