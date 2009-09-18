@@ -20,6 +20,13 @@
     provides=".interfaces.ISolrFieldHandler"
     />
 
+<!-- Use BoolFieldHandler for fields of Java class "solr.BoolField" -->
+<utility
+    factory=".handlers.BoolFieldHandler"
+    provides=".interfaces.ISolrFieldHandler"
+    name="solr.BoolField"
+    />
+
 <!-- Use DateFieldHandler for fields of Java class "solr.DateField" -->
 <utility
     factory=".handlers.DateFieldHandler"

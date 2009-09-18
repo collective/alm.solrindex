@@ -68,6 +68,15 @@ class DefaultFieldHandler(object):
             return unicode(value)
 
 
+class BoolFieldHandler(DefaultFieldHandler):
+
+    def convert_one(self, value):
+        if value:
+            return 'true'
+        else:
+            return 'false'
+
+
 class DateFieldHandler(DefaultFieldHandler):
 
     def convert_one(self, value):

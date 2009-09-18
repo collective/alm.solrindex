@@ -99,6 +99,45 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         self.assertEqual(actual, [u'abc', u'def'])
 
 
+class BoolFieldHandlerTests(unittest.TestCase):
+
+    def _getTargetClass(self):
+        from alm.solrindex.handlers import BoolFieldHandler
+        return BoolFieldHandler
+
+    def _makeOne(self):
+        return self._getTargetClass()()
+
+    def test_verifyImplements(self):
+        from zope.interface.verify import verifyClass
+        from alm.solrindex.interfaces import ISolrFieldHandler
+        verifyClass(ISolrFieldHandler, self._getTargetClass())
+
+    def test_verifyProvides(self):
+        from zope.interface.verify import verifyObject
+        from alm.solrindex.interfaces import ISolrFieldHandler
+        verifyObject(ISolrFieldHandler, self._makeOne())
+
+    def test_convert_none(self):
+        handler = self._makeOne()
+        self.assertEqual(handler.convert(None), ())
+
+    def test_convert_true(self):
+        handler = self._makeOne()
+        actual = handler.convert(True)
+        self.assertEqual(actual, ['true'])
+
+    def test_convert_false(self):
+        handler = self._makeOne()
+        actual = handler.convert(False)
+        self.assertEqual(actual, ['false'])
+
+    def test_convert_list(self):
+        handler = self._makeOne()
+        actual = handler.convert([False, True, True])
+        self.assertEqual(actual, ['false', 'true', 'true'])
+
+
 class DateFieldHandlerTests(unittest.TestCase):
 
     def _getTargetClass(self):
@@ -208,6 +247,7 @@ def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(SolrEscapeTests))
     suite.addTest(unittest.makeSuite(DefaultFieldHandlerTests))
+    suite.addTest(unittest.makeSuite(BoolFieldHandlerTests))
     suite.addTest(unittest.makeSuite(DateFieldHandlerTests))
     suite.addTest(unittest.makeSuite(TextFieldHandlerTests))
     return suite
