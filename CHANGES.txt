@@ -1,7 +1,11 @@
 Changelog
 =========
 
-0.8 (xxxx-xx-xx)
+0.9 (xxxx-xx-xx)
+----------------
+
+
+0.8 (2009-09-18)
 ----------------
 
 - Added support for Solr boolean fields.
