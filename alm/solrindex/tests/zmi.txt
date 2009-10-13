@@ -11,7 +11,7 @@ Log in as an administrator.
     >>> self.portal.error_log._ignored_exceptions = ()
     >>> browser = Browser()
     >>> browser.handleErrors = False
-    >>> browser.open(portal_url)
+    >>> browser.open(portal_url + '/login_form')
     >>> browser.getControl(name='__ac_name').value = portal_owner
     >>> browser.getControl(name='__ac_password').value = default_password
     >>> browser.getControl(name='submit').click()

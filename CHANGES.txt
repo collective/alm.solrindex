@@ -4,6 +4,10 @@ Changelog
 0.9 (xxxx-xx-xx)
 ----------------
 
+- Fixed test failure by going to the login_form to log in, instead of
+  the front page, where we get ambiguity errors.
+  [maurits]
+
 
 0.8 (2009-09-18)
 ----------------
