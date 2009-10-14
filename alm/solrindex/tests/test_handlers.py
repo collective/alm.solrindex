@@ -98,6 +98,13 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         self.assert_(isinstance(actual[0], unicode))
         self.assertEqual(actual, [u'abc', u'def'])
 
+    def test_convert_invalid_xml(self):
+        handler = self._makeOne()
+        actual = handler.convert('A backspace\x08 escaped\x1b!')
+        self.assertEqual(len(actual), 1)
+        self.assert_(isinstance(actual[0], unicode))
+        self.assertEqual(actual, [u'A backspace escaped!'])
+
 
 class BoolFieldHandlerTests(unittest.TestCase):
 

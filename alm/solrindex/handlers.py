@@ -15,6 +15,8 @@ from DateTime.DateTime import DateTime
 # See: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html
 _escape_chars = re.compile(r'([-+&|!(){}\[\]^"~*?:\\])')
 
+invalid_xml_re = re.compile(r'[\x00-\x08\x0B\x0C\x0E-\x1F]')
+
 def solr_escape(query):
     """Escape all characters that have a special meaning to Solr"""
     return _escape_chars.sub(r'\\\1', query)
@@ -63,9 +65,10 @@ class DefaultFieldHandler(object):
 
     def convert_one(self, value):
         if isinstance(value, str):
-            return value.decode('utf-8')
+            s = value.decode('utf-8')
         else:
-            return unicode(value)
+            s = unicode(value)
+        return invalid_xml_re.sub('', s)
 
 
 class BoolFieldHandler(DefaultFieldHandler):
