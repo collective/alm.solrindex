@@ -8,6 +8,9 @@ Changelog
   the front page, where we get ambiguity errors.
   [maurits]
 
+- Fixed the catalog object information page.  Solr was unable to parse
+  a negative number in the query.
+
 
 0.8 (2009-09-18)
 ----------------

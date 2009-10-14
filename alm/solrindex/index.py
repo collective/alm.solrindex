@@ -106,7 +106,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         cm = self.connection_manager
         uniqueKey = cm.schema.uniqueKey
         response = cm.connection.query(
-            q='%s:%d' % (uniqueKey, documentId), fields='*', rows='0')
+            q='%s:"%d"' % (uniqueKey, documentId), fields='*', rows='0')
         if response:
             return response[0]
         else:
