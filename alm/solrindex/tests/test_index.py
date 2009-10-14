@@ -58,7 +58,7 @@ class SolrIndexTests(unittest.TestCase):
         entry = index.getEntryForObject(2)
         self.assertEqual(entry, {'docid': 2})
         self.assertEqual(cm.connection.queries,
-            [{'q': 'docid:"2"', 'fields': '*', 'rows': '0'}])
+            [{'q': 'docid:"2"', 'fields': '*'}])
 
     def test_index_object(self):
         self._registerConnectionManager()
