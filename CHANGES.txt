@@ -1,7 +1,11 @@
 Changelog
 =========
 
-0.10 (xxxx-xx-xx)
+0.11 (xxxx-xx-xx)
+-----------------
+
+
+0.10 (2009-10-15)
 -----------------
 
 - Filter out invalid XML characters from indexed documents.
