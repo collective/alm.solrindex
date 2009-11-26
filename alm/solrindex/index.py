@@ -252,17 +252,18 @@ class SolrIndex(PropertyManager, SimpleItem):
 class SolrConnectionManager(object):
     implements(ISolrConnectionManager, IDataManager)
 
-    def __init__(self, solr_index):
+    def __init__(self, solr_index, connection_factory=SolrConnection):
         self.solr_uri = solr_index.solr_uri
         self._joined = False
-        self._connection = SolrConnection(self.solr_uri)
+        self._connection_factory = connection_factory
+        self._connection = connection_factory(self.solr_uri)
         self.schema = SolrSchema(self.solr_uri)
 
     @property
     def connection(self):
         c = self._connection
         if c is None:
-            c = SolrConnection(self.solr_uri)
+            c = self._connection_factory(self.solr_uri)
             self._connection = c
         return c
 
@@ -287,9 +288,8 @@ class SolrConnectionManager(object):
         pass
 
     def tpc_vote(self, transaction):
-        c = self._connection
-        if c is None:
-            raise AssertionError("Solr connection is closed")
+        # ensure connection is open
+        dummy = self.connection
 
     def tpc_finish(self, transaction):
         try:

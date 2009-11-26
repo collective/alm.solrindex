@@ -209,6 +209,70 @@ class SolrIndexTests(unittest.TestCase):
         self.assertRaises(ValueError, getattr, index, 'solr_uri')
 
 
+class SolrConnectionManagerTests(unittest.TestCase):
+
+    def setUp(self):
+        cleanUp()
+
+    def tearDown(self):
+        cleanUp()
+
+    def _getTargetClass(self):
+        from alm.solrindex.index import SolrConnectionManager
+        return SolrConnectionManager
+
+    def _makeOne(self, uri=''):
+        class DummySolrIndex:
+            solr_uri = uri
+        obj = self._getTargetClass()(DummySolrIndex(), DummySolrConnection)
+        return obj
+
+    def test_verifyImplements(self):
+        from zope.interface.verify import verifyClass
+        from alm.solrindex.interfaces import ISolrConnectionManager
+        verifyClass(ISolrConnectionManager, self._getTargetClass())
+
+    def test_verifyProvides(self):
+        from zope.interface.verify import verifyObject
+        from alm.solrindex.interfaces import ISolrConnectionManager
+        obj = self._makeOne()
+        verifyObject(ISolrConnectionManager, obj)
+
+    def test_get_connection(self):
+        obj = self._makeOne()
+        c = obj.connection
+        self.assert_(c is not None)
+        self.assert_(obj.connection is c)
+
+    def test_set_changed(self):
+        obj = self._makeOne()
+        self.assertFalse(obj._joined)
+        obj.set_changed()
+        self.assertTrue(obj._joined)
+
+    def test_abort(self):
+        obj = self._makeOne()
+        obj.abort(None)
+        self.assertFalse(obj._joined)
+        self.assertEqual(obj._connection, None)
+
+    def test_commit(self):
+        obj = self._makeOne()
+        obj.set_changed()
+        obj.tpc_vote(None)
+        obj.tpc_finish(None)
+        self.assertFalse(obj._joined)
+        self.assertEqual(obj._connection.commits, 1)
+
+    def test_commit_after_abort(self):
+        obj = self._makeOne()
+        obj.abort(None)
+        obj.set_changed()
+        obj.tpc_vote(None)
+        obj.tpc_finish(None)
+        self.assertFalse(obj._joined)
+        self.assertEqual(obj._connection.commits, 1)
+
 class DummyZODBConnection:
     def register(self, obj):
         pass
@@ -225,12 +289,14 @@ class DummyConnectionManager:
         self.changed = True
 
 class DummySolrConnection:
-    def __init__(self):
+    def __init__(self, uri=None):
+        self.uri = uri
         self.queries = []
         self.results = []
         self.added = []
         self.deleted = []
         self.delete_queries = []
+        self.commits = 0
 
     def query(self, **args):
         self.queries.append(args)
@@ -244,6 +310,12 @@ class DummySolrConnection:
 
     def delete_query(self, q):
         self.delete_queries.append(q)
+
+    def close(self):
+        pass
+
+    def commit(self):
+        self.commits += 1
 
 class DummySchema:
     uniqueKey = 'docid'
@@ -276,4 +348,5 @@ class DummyIndexableObject:
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(SolrIndexTests))
+    suite.addTest(unittest.makeSuite(SolrConnectionManagerTests))
     return suite
