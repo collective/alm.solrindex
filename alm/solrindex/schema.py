@@ -31,8 +31,8 @@ class SolrSchema(object):
 
     def download_from(self, solr_uri):
         """Get schema.xml from a running Solr instance"""
-        schema_uris = ('%s/admin/file/?file=schema.xml',        # solr 1.3
-                       '%s/admin/get-file.jsp?file=schema.xml') # solr 1.2
+        schema_uris = ('%s/admin/file/?file=schema.xml',         # solr 1.3
+                       '%s/admin/get-file.jsp?file=schema.xml')  # solr 1.2
         for i, uri in enumerate(schema_uris):
             uri = uri % solr_uri
             log.debug('getting schema from %s', uri)

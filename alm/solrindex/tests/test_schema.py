@@ -2,6 +2,7 @@
 import unittest
 from zope.testing.cleanup import cleanUp
 
+
 class SolrSchemaTests(unittest.TestCase):
 
     def setUp(self):

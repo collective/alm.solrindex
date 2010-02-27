@@ -8,6 +8,7 @@ from Testing import ZopeTestCase as ztc
 
 from alm.solrindex.tests import base
 
+
 def test_suite():
     return unittest.TestSuite([
         ztc.FunctionalDocFileSuite(

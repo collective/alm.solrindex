@@ -2,6 +2,7 @@
 import unittest
 from zope.testing.cleanup import cleanUp
 
+
 class SolrIndexTests(unittest.TestCase):
 
     def setUp(self):
@@ -41,7 +42,7 @@ class SolrIndexTests(unittest.TestCase):
         self._registerConnectionManager()
         index = self._makeOne('id', 'someuri')
         cm = index.connection_manager
-        cm2  = index.connection_manager
+        cm2 = index.connection_manager
         self.assert_(cm is cm2)
         self.assert_(cm.index is index)
 
@@ -273,9 +274,11 @@ class SolrConnectionManagerTests(unittest.TestCase):
         self.assertFalse(obj._joined)
         self.assertEqual(obj._connection.commits, 1)
 
+
 class DummyZODBConnection:
     def register(self, obj):
         pass
+
 
 class DummyConnectionManager:
     def __init__(self, index):
@@ -287,6 +290,7 @@ class DummyConnectionManager:
 
     def set_changed(self):
         self.changed = True
+
 
 class DummySolrConnection:
     def __init__(self, uri=None):
@@ -317,33 +321,41 @@ class DummySolrConnection:
     def commit(self):
         self.commits += 1
 
+
 class DummySchema:
     uniqueKey = 'docid'
+
     def __init__(self):
         self.fields = []
         for name in ('f1', 'f2'):
             self.fields.append(DummyField(name))
+
 
 class DummyField:
     def __init__(self, name):
         self.name = name
         self.handler = DummyFieldHandler()
 
+
 class DummyFieldHandler:
     def parse_query(self, field, field_query):
         return {'q': '%s:%s' % (field.name, field_query)}
+
     def convert(self, value):
         return [value]
+
 
 class DummySolrResult:
     def __init__(self, numFound):
         self.numFound = numFound
+
 
 class DummyIndexableObject:
     f1 = 'a'
 
     def f2(self):
         return 'b'
+
 
 def test_suite():
     suite = unittest.TestSuite()

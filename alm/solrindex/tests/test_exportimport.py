@@ -12,6 +12,7 @@ _SOLRINDEX_XML = """\
 </index>
 """
 
+
 class SolrExportImportZCMLLayer(ExportImportZCMLLayer):
 
     @classmethod

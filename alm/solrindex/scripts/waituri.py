@@ -10,6 +10,7 @@ import time
 
 default_timeout = 90
 
+
 def main():
     if len(sys.argv) < 2:
         sys.exit('usage: %s URI [timeout]' % sys.argv[0])

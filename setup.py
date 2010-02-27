@@ -3,6 +3,7 @@
 import os
 from setuptools import setup, find_packages
 
+
 def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
@@ -18,20 +19,20 @@ long_description = (
     '**********************\n'
     + '\n' +
     read('alm', 'solrindex', 'README.txt')
-    + '\n'
-    )
+    + '\n')
 
 here = os.path.abspath(os.path.normpath(os.path.dirname(__file__)))
 version_txt = os.path.join(here, 'alm/solrindex/version.txt')
 alm_solrindex_version = open(version_txt).read().strip()
 
-tests_require=['zope.testing']
+tests_require = ['zope.testing']
 
 setup(name='alm.solrindex',
       version=alm_solrindex_version,
       description=__doc__,
       long_description=long_description,
-      # Get more strings from http://www.python.org/pypi?%3Aaction=list_classifiers
+      # Get more strings from
+      # http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
         'Framework :: Zope',
         'Intended Audience :: Developers',
@@ -52,9 +53,9 @@ setup(name='alm.solrindex',
         ],
       tests_require=tests_require,
       extras_require=dict(tests=tests_require),
-      test_suite = 'alm.solrindex.tests.test_suite',
-      entry_points = """\
+      test_suite='alm.solrindex.tests.test_suite',
+      entry_points="""\
       [console_scripts]
       waituri = alm.solrindex.scripts.waituri:main
-      """
+      """,
       )

@@ -26,6 +26,7 @@ from Products.PloneTestCase.layer import onsetup
 # not in the Products.*) namespace. For that, see below.
 # All of Plone's products are already set up by PloneTestCase.
 
+
 @onsetup
 def setup_product():
     """Set up the package and its dependencies.

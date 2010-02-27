@@ -296,11 +296,13 @@ __version__ = "0.5"
 
 __all__ = ['SolrException', 'SolrConnection', 'Response']
 
-_python_version = sys.version_info[0]+(sys.version_info[1]/10.0)
+_python_version = sys.version_info[0] + (sys.version_info[1] / 10.0)
 
 # ===================================================================
 # Exceptions
 # ===================================================================
+
+
 class SolrException(Exception):
     """ An exception thrown by solr connections """
     def __init__(self, httpcode, reason=None, body=None):
@@ -358,32 +360,33 @@ class SolrConnection:
         self.scheme, self.host, self.path = urlparse.urlparse(url, 'http')[:3]
         self.url = url
 
-        assert self.scheme in ('http','https')
+        assert self.scheme in ('http', 'https')
 
         self.persistent = persistent
         self.reconnects = 0
         self.timeout = timeout
         self.ssl_key = ssl_key
         self.ssl_cert = ssl_cert
-        
+
         kwargs = {}
-        
+
         if self.timeout and _python_version >= 2.6 and _python_version < 3:
             kwargs['timeout'] = self.timeout
-        
+
         if self.scheme == 'https':
             self.conn = httplib.HTTPSConnection(self.host,
                    key_file=ssl_key, cert_file=ssl_cert, **kwargs)
         else:
             self.conn = httplib.HTTPConnection(self.host, **kwargs)
 
-        self.batch_cnt = 0  #  this is int, not bool!
+        # this is int, not bool!
+        self.batch_cnt = 0
         self.response_version = 2.2
         self.encoder = codecs.getencoder('utf-8')
 
         # Responses from Solr will always be in UTF-8
         self.decoder = codecs.getdecoder('utf-8')
-        
+
         # Set timeout, if applicable.
         if self.timeout and _python_version < 2.6:
             self.conn.connect()
@@ -432,7 +435,8 @@ class SolrConnection:
         formatting.
 
         sort_order defaults to "asc" and specifies the order to sort the fields
-        in. sort_order must be "asc" or "desc", otherwise a ValueError is raised.
+        in. sort_order must be "asc" or "desc", otherwise a ValueError is
+        raised.
 
         Optional parameters can also be passed in.  Many SOLR
         parameters are in a dotted notation (e.g., hl.simple.post).
@@ -443,7 +447,7 @@ class SolrConnection:
         """
 
         # Clean up optional parameters to match SOLR spec.
-        params = dict([(key.replace('_','.'), value)
+        params = dict([(key.replace('_', '.'), value)
                       for key, value in params.items()])
 
         if highlight:
@@ -454,7 +458,8 @@ class SolrConnection:
                 params['hl.fl'] = highlight
             else:
                 if not fields:
-                    raise ValueError("highlight is True and no fields were given")
+                    raise ValueError(
+                        "highlight is True and no fields were given")
                 elif isinstance(fields, basestring):
                     params['hl.fl'] = [fields]
                 else:
@@ -476,7 +481,7 @@ class SolrConnection:
                 sort = ",".join(sort)
             params['sort'] = "%s %s" % (sort, sort_order)
 
-        if score and not 'score' in fields.replace(',',' ').split():
+        if score and not 'score' in fields.replace(',', ' ').split():
             fields += ',score'
 
         params['fl'] = fields
@@ -605,7 +610,8 @@ class SolrConnection:
         """
         Issue a commit command to the SOLR server.
         """
-        if not wait_searcher:  #just handle deviations from the default
+        # just handle deviations from the default
+        if not wait_searcher:
             if not wait_flush:
                 options = 'waitFlush="false" waitSearcher="false"'
             else:
@@ -636,13 +642,13 @@ class SolrConnection:
         """
 
         # Clean up optional parameters to match SOLR spec.
-        params = dict([(key.replace('_','.'), value)
+        params = dict([(key.replace('_', '.'), value)
                        for key, value in params.items()])
 
         request = urllib.urlencode(params, doseq=True)
 
         try:
-            rsp = self._post(self.path+'/select',
+            rsp = self._post(self.path + '/select',
                               request, self.form_headers)
             data = rsp.read()
         finally:
@@ -668,7 +674,8 @@ class SolrConnection:
 
         # Detect old-style error response (HTTP response code
         # of 200 with a non-zero status.
-        if data.startswith('<result status="') and not data.startswith('<result status="0"'):
+        if data.startswith('<result status="') and \
+           not data.startswith('<result status="0"'):
             data = self.decoder(data)[0]
             parsed = parseString(data)
             status = parsed.documentElement.getAttribute('status')
@@ -693,7 +700,9 @@ class SolrConnection:
                     continue
                 # Do some basic data conversion
                 if isinstance(value, datetime.date):
-                    value = datetime.datetime.combine(value, datetime.time(tzinfo=UTC()))
+                    value = datetime.datetime.combine(
+                        value,
+                        datetime.time(tzinfo=UTC()))
                 if isinstance(value, datetime.datetime):
                     value = utc_to_string(value)
                 elif isinstance(value, bool):
@@ -859,7 +868,7 @@ class ResponseContentHandler(ContentHandler):
         # Keep track of children
         self.stack[-2].children.append(element)
 
-    def characters (self, ch):
+    def characters(self, ch):
         self.stack[-1].chars.append(ch)
 
     def endElement(self, name):
@@ -884,9 +893,9 @@ class ResponseContentHandler(ContentHandler):
             node.final = value.strip().lower().startswith('t')
 
         elif name == 'date':
-             node.final = utc_from_string(value.strip())
+            node.final = utc_from_string(value.strip())
 
-        elif name in ('float','double', 'status','QTime'):
+        elif name in ('float', 'double', 'status', 'QTime'):
             node.final = float(value.strip())
 
         elif name == 'response':
@@ -900,11 +909,14 @@ class ResponseContentHandler(ContentHandler):
                     for attr_name in child.attrs.getNames():
                         # We already know it is a response
                         if attr_name != "name":
-                            setattr(response, attr_name, child.attrs.get(attr_name))
+                            setattr(
+                                response,
+                                attr_name,
+                                child.attrs.get(attr_name))
 
                 setattr(response, name, child.final)
 
-        elif name in ('lst','doc'):
+        elif name in ('lst', 'doc'):
             # Represent these with a dict
             node.final = dict(
                     [(cnode.attrs['name'], cnode.final)
@@ -915,7 +927,6 @@ class ResponseContentHandler(ContentHandler):
 
         elif name == 'result':
             node.final = Results([cnode.final for cnode in node.children])
-
 
         elif name in ('responseHeader',):
             node.final = dict([(cnode.name, cnode.final)
@@ -992,6 +1003,7 @@ class UTC(datetime.tzinfo):
 
 utc = UTC()
 
+
 def utc_to_string(value):
     """
     Convert datetimes to the subset of ISO 8601 that SOLR expects.
@@ -1001,6 +1013,7 @@ def utc_to_string(value):
         value = value.split('+')[0]
     value += 'Z'
     return value
+
 
 def utc_from_string(value):
     """
@@ -1021,4 +1034,4 @@ def utc_from_string(value):
         return datetime.datetime(year, month, day, hour,
             minute, second, microsecond, utc)
     except ValueError:
-        raise ValueError ("'%s' is not a valid ISO 8601 SOLR date" % value)
+        raise ValueError("'%s' is not a valid ISO 8601 SOLR date" % value)

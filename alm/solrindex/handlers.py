@@ -17,6 +17,7 @@ _escape_chars = re.compile(r'([-+&|!(){}\[\]^"~*?:\\])')
 
 invalid_xml_re = re.compile(r'[\x00-\x08\x0B\x0C\x0E-\x1F]')
 
+
 def solr_escape(query):
     """Escape all characters that have a special meaning to Solr"""
     return _escape_chars.sub(r'\\\1', query)

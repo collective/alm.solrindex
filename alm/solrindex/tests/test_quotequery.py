@@ -4,6 +4,7 @@
 
 import unittest
 
+
 class QuoteQueryTests(unittest.TestCase):
 
     def _callFUT(self, s):
@@ -32,13 +33,13 @@ class QuoteQueryTests(unittest.TestCase):
         self.assertEqual(quote('()'), '')
         self.assertEqual(quote('{}'), '')
         self.assertEqual(quote('...""'), '...\\"\\"')
-        self.assertEqual(quote('\\'), '\\\\') # Search for \ has to be quoted
+        # Search for \ has to be quoted
+        self.assertEqual(quote('\\'), '\\\\')
         self.assertEqual(quote('\?'), '\?')
         self.assertEqual(quote('john@foo.com'), 'john@foo.com')
         self.assertEqual(quote(
-            'http://machine/folder and item and some/path and and amilli3*'),
-            r'(http\://machine/folder and item and some/path and and amilli3*)'
-            )
+           'http://machine/folder and item and some/path and and amilli3*'),
+           r'(http\://machine/folder and item and some/path and and amilli3*)')
         self.assertEqual(quote('"[]"'), '"\[\]"')
         self.assertEqual(quote('"{}"'), '"\{\}"')
         self.assertEqual(quote('"()"'), '"\(\)"')
@@ -153,6 +154,7 @@ class QuoteQueryTests(unittest.TestCase):
         quote = self._callFUT
         self.assertEqual(quote('ham&eggs'), 'ham&eggs')
         self.assertEqual(quote('ls -l | less'), '(ls -l | less)')
+
 
 def test_suite():
     suite = unittest.TestSuite()

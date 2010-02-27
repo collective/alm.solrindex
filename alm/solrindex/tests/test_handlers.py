@@ -1,6 +1,7 @@
 
 import unittest
 
+
 class SolrEscapeTests(unittest.TestCase):
 
     def _callFUT(self, s):
@@ -249,6 +250,7 @@ class TextFieldHandlerTests(unittest.TestCase):
 
 class DummyField:
     name = 'dummyfield'
+
 
 def test_suite():
     suite = unittest.TestSuite()

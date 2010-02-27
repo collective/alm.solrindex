@@ -1,6 +1,7 @@
 
 from alm.solrindex.index import SolrIndex
 
+
 class SolrIndexAddView:
 
     def __call__(self, id='', solr_uri='', submit_add='',
@@ -17,7 +18,7 @@ class SolrIndexAddView:
             if delete_redundant:
                 for field in cm.schema.fields:
                     name = field.name
-                    if name != id and catalog.indexes.has_key(name):
+                    if name != id and name in catalog.indexes:
                         catalog.delIndex(name)
 
             self.request.response.redirect(

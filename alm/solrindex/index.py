@@ -174,13 +174,13 @@ class SolrIndex(PropertyManager, SimpleItem):
         solr_params = {}
 
         # Get the Solr parameters from the catalog query
-        if request.has_key('solr_params'):
+        if 'solr_params' in request:
             solr_params.update(request['solr_params'])
 
         # Include parameters from field queries
         for field in cm.schema.fields:
             name = field.name
-            if not request.has_key(name):
+            if not name in request:
                 continue
             field_query = request[name]
             field_params = field.handler.parse_query(field, field_query)
@@ -212,7 +212,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         log.debug("querying: %r", solr_params)
 
         response = cm.connection.query(**solr_params)
-        if request.has_key('solr_callback'):
+        if 'solr_callback' in request:
             # Call a function with the Solr response object
             callback = request['solr_callback']
             callback(response)
@@ -306,4 +306,3 @@ class SolrConnectionManager(object):
 
     def sortKey(self):
         return self.solr_uri
-

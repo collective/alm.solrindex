@@ -4,6 +4,8 @@ Changelog
 0.12 (xxxx-xx-xx)
 -----------------
 
+- PEP8 cleanup
+  [clayton]
 
 0.11 (2009-11-27)
 -----------------
