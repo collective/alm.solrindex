@@ -18,7 +18,7 @@ class SolrIndexAddView:
             if delete_redundant:
                 for field in cm.schema.fields:
                     name = field.name
-                    if name != id and name in catalog.indexes:
+                    if name != id and catalog.indexes.has_key(name):
                         catalog.delIndex(name)
 
             self.request.response.redirect(
