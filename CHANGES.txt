@@ -1,6 +1,9 @@
 Changelog
 =========
-0.14 (xxxx-xx-xx)
+0.15 (xxxx-xx-xx)
+----------------
+
+0.14 (2010-05-11)
 -----------------
 
 - Updated SolrConnectionManager to have a dummy savepoint
