@@ -249,6 +249,15 @@ class SolrIndex(PropertyManager, SimpleItem):
         cm.connection.delete_query('*:*')
 
 
+class NoRollbackSavepoint:
+
+    def __init__(self, datamanager):
+        self.datamanager = datamanager
+
+    def rollback(self):
+        pass
+
+
 class SolrConnectionManager(object):
     implements(ISolrConnectionManager, IDataManager)
 
@@ -306,3 +315,6 @@ class SolrConnectionManager(object):
 
     def sortKey(self):
         return self.solr_uri
+
+    def savepoint(self, optimistic=False):
+        return NoRollbackSavepoint(self)

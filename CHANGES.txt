@@ -3,6 +3,10 @@ Changelog
 0.14 (xxxx-xx-xx)
 -----------------
 
+- Updated SolrConnectionManager to have a dummy savepoint
+  implementation, refs #2451.
+  [davidb]
+
 0.13 (2010-03-01)
 -----------------
 
