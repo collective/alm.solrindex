@@ -29,7 +29,7 @@ Display the form for adding a Solr index.
 Add the index.
 
     >>> browser.getControl(name='id').value = 'solr'
-    >>> browser.getControl(name='solr_uri').value = 'http://localhost:8988/solr'
+    >>> browser.getControl(name='solr_uri').value = 'http://localhost:8983/solr'
     >>> browser.getControl(name='submit_add').click()
     >>> "Index Added" in browser.contents
     True
