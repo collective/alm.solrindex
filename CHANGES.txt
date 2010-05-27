@@ -3,6 +3,9 @@ Changelog
 0.15 (xxxx-xx-xx)
 -----------------
 
+- Clean up docs in prep for release.
+  [claytron]
+
 - Fix up reST errors.
   [claytron]
 
