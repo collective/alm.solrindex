@@ -31,7 +31,7 @@ setup(name='alm.solrindex',
       # Get more strings from
       # http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
-        'Framework :: Zope',
+        'Framework :: Zope2',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'License :: OSI Approved :: GNU General Public License (GPL)',
