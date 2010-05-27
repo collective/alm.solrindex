@@ -2,8 +2,8 @@ Introduction
 ============
 
 .. image:: http://www.sixfeetup.com/logos/solr-index.png
-   :height: 327
-   :width: 111
+   :height: 111
+   :width: 327
    :alt: SolrIndex
    :align: left
 
