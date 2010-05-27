@@ -10,13 +10,10 @@ def read(*rnames):
 long_description = (
     read('README.txt')
     + '\n' +
-    'Change history\n'
-    '**************\n'
-    + '\n' +
     read('CHANGES.txt')
     + '\n' +
     'Detailed Documentation\n'
-    '**********************\n'
+    '======================\n'
     + '\n' +
     read('alm', 'solrindex', 'README.txt')
     + '\n')
