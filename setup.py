@@ -1,4 +1,5 @@
 """A ZCatalog multi-index that uses Solr
+
 """
 import os
 from setuptools import setup, find_packages
@@ -37,9 +38,9 @@ setup(name='alm.solrindex',
         'License :: OSI Approved :: GNU General Public License (GPL)',
         ],
       keywords='zope zcatalog solr plone',
-      author='Shane Hathaway',
-      author_email='shane@hathawaymix.org',
-      license='GPL',
+      author='Six Feet Up, Inc.',
+      author_email='info@sixfeetup.com',
+      license='BSD',
       packages=find_packages(exclude=['ez_setup']),
       namespace_packages=['alm'],
       include_package_data=True,
