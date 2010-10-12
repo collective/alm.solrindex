@@ -54,6 +54,9 @@ setup(
     extras_require=dict(tests=tests_require),
     test_suite='alm.solrindex.tests.test_suite',
     entry_points="""\
+    [z3c.autoinclude.plugin]
+    target = plone
+
     [console_scripts]
     waituri = alm.solrindex.scripts.waituri:main
     """,

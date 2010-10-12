@@ -4,6 +4,9 @@
     xmlns:five="http://namespaces.zope.org/five"
     >
 
+<includePlugins package="." />
+<includeDependencies package="." />
+
 <!-- GenericSetup integration -->
 <include file="profiles.zcml" />
 <adapter factory=".exportimport.SolrIndexNodeAdapter"/>
