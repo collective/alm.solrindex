@@ -1,5 +1,12 @@
 Changelog
 =========
+
+1.1 (2010-10-12)
+----------------
+
+- Added `z3c.autoinclude` support for Plone
+  [claytron]
+
 1.0 (2010-05-27)
 ----------------
 
