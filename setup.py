@@ -25,35 +25,36 @@ alm_solrindex_version = open(version_txt).read().strip()
 
 tests_require = ['zope.testing']
 
-setup(name='alm.solrindex',
-      version=alm_solrindex_version,
-      description=__doc__,
-      long_description=long_description,
-      # Get more strings from
-      # http://www.python.org/pypi?%3Aaction=list_classifiers
-      classifiers=[
+setup(
+    name='alm.solrindex',
+    version=alm_solrindex_version,
+    description=__doc__,
+    long_description=long_description,
+    # Get more strings from
+    # http://www.python.org/pypi?%3Aaction=list_classifiers
+    classifiers=[
         'Framework :: Zope2',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'License :: OSI Approved :: GNU General Public License (GPL)',
         ],
-      keywords='zope zcatalog solr plone',
-      author='Six Feet Up, Inc.',
-      author_email='info@sixfeetup.com',
-      license='BSD',
-      packages=find_packages(exclude=['ez_setup']),
-      namespace_packages=['alm'],
-      include_package_data=True,
-      zip_safe=False,
-      install_requires=[
+    keywords='zope zcatalog solr plone',
+    author='Six Feet Up, Inc.',
+    author_email='info@sixfeetup.com',
+    license='BSD',
+    packages=find_packages(exclude=['ez_setup']),
+    namespace_packages=['alm'],
+    include_package_data=True,
+    zip_safe=False,
+    install_requires=[
         'setuptools',
         #'solrpy',  # we have a private copy until solrpy fixes some bugs
-        ],
-      tests_require=tests_require,
-      extras_require=dict(tests=tests_require),
-      test_suite='alm.solrindex.tests.test_suite',
-      entry_points="""\
-      [console_scripts]
-      waituri = alm.solrindex.scripts.waituri:main
-      """,
-      )
+    ],
+    tests_require=tests_require,
+    extras_require=dict(tests=tests_require),
+    test_suite='alm.solrindex.tests.test_suite',
+    entry_points="""\
+    [console_scripts]
+    waituri = alm.solrindex.scripts.waituri:main
+    """,
+    )
