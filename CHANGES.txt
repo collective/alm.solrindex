@@ -1,10 +1,11 @@
 Changelog
 =========
 
-1.2 (xxxx-xx-xx)
-----------------
+1.1.1 (xxxx-xx-xx)
+------------------
 
-
+- Fix up links to issue tracker and Plone product page
+  [clayton]
 
 1.1 (2010-10-12)
 ----------------
