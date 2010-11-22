@@ -637,7 +637,7 @@ class SolrConnection:
         Issue a query against a SOLR server.
 
         Return the raw result.  No pre-processing or
-        post-processing happends to either
+        post-processing happens to either
         input parameters or responses
         """
 
