@@ -38,6 +38,10 @@ class SolrIndex(PropertyManager, SimpleItem):
             'the Solr URI.  Ignored if solr_uri_static is non-empty.'},
         {'id': 'solr_uri', 'type': 'string', 'mode': '',
             'description': 'The effective Solr URI (read-only)'},
+        {'id': 'expected_encodings', 'type': 'lines', 'mode': 'w',
+            'description':
+            'The list of encodings to try to decode from before encoding '
+            'to UTF-8 to submit to Solr.'},
         )
 
     manage_options = PropertyManager.manage_options + SimpleItem.manage_options
@@ -45,10 +49,13 @@ class SolrIndex(PropertyManager, SimpleItem):
     _v_temp_cm = None  # An ISolrConnectionManager used during initialization
     solr_uri_static = ''
     solr_uri_env_var = ''
+    expected_encodings = ['utf-8']
 
-    def __init__(self, id, solr_uri_static=''):
+    def __init__(self, id, solr_uri_static='', expected_encodings=None):
         self.id = id
         self.solr_uri_static = solr_uri_static
+        if expected_encodings is not None:
+            self.expected_encodings = expected_encodings
 
     @property
     def solr_uri(self):
@@ -211,7 +218,27 @@ class SolrIndex(PropertyManager, SimpleItem):
 
         log.debug("querying: %r", solr_params)
 
-        response = cm.connection.query(**solr_params)
+        # http://wiki.apache.org/solr/FAQ#Why_don.27t_International_Characters_Work.3F
+        # Decode all strings using list from `expected_encodings`,
+        # then transcode to UTF8
+        transcoded_params = {}
+        for key, val in solr_params.items():
+            enc_val = None
+            if isinstance(val, basestring):
+                enc_val = self._encode_param(val)
+            elif isinstance(val, list):
+                enc_val = []
+                for v in val:
+                    if isinstance(v, basestring):
+                        enc_val.append(self._encode_param(v))
+                    else:
+                        enc_val.append(v)
+            else:
+                enc_val = val
+            transcoded_params[key] = enc_val
+
+        response = cm.connection.query(**transcoded_params)
+        #response = cm.connection.query(**solr_params)
         if request.has_key('solr_callback'):
             # Call a function with the Solr response object
             callback = request['solr_callback']
@@ -223,6 +250,21 @@ class SolrIndex(PropertyManager, SimpleItem):
             result[r[uniqueKey]] = int(r.get('score', 0) * 1000)
 
         return result, queried
+
+    def _encode_param(self, val):
+        decoded_val = None
+        for encoding in self.expected_encodings:
+            try:
+                decoded_val = force_unicode(val, encoding)
+            except UnicodeDecodeError:
+                continue
+        if decoded_val is None:
+            # Our escape hatch; if none of the expected encodings
+            # work, we fall back to UTF8 and replace characters
+            decoded_val = force_unicode(val, encoding='utf-8',
+                                             errors='replace')
+        # We don't want to raise a UnicodeEncodeError here
+        return decoded_val.encode('utf-8', 'replace')
 
     ## The ZCatalog Index management screen uses these methods ##
 
@@ -318,3 +360,39 @@ class SolrConnectionManager(object):
 
     def savepoint(self, optimistic=False):
         return NoRollbackSavepoint(self)
+
+def force_unicode(s, encoding='utf-8', errors='strict'):
+    if isinstance(s, unicode):
+        return s
+    try:
+        if not isinstance(s, basestring,):
+            if hasattr(s, '__unicode__'):
+                s = unicode(s)
+            else:
+                try:
+                    s = unicode(str(s), encoding, errors)
+                except UnicodeEncodeError:
+                    if not isinstance(s, Exception):
+                        raise
+                    # If we get to here, the caller has passed in an Exception
+                    # subclass populated with non-ASCII data without special
+                    # handling to display as a string. We need to handle this
+                    # without raising a further exception. We do an
+                    # approximation to what the Exception's standard str()
+                    # output should be.
+                    s = ' '.join([force_unicode(arg, encoding, errors)
+                                  for arg in s])
+        elif not isinstance(s, unicode):
+            # Note: We use .decode() here, instead of unicode(s, encoding,
+            # errors), so that if s is a SafeString, it ends up being a
+            # SafeUnicode at the end.
+            s = s.decode(encoding, errors)
+    except UnicodeDecodeError, e:
+       # If we get to here, the caller has passed in an Exception
+       # subclass populated with non-ASCII bytestring data without a
+       # working unicode method. Try to handle this without raising a
+       # further exception by individually forcing the exception args
+       # to unicode.
+       s = ' '.join([force_unicode(arg, encoding, errors) for arg in s])
+
+    return s

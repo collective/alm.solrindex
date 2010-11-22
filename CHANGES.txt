@@ -4,6 +4,28 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Thanks to: "Schorr, Dr. Thomas" <thomas.schorr@haufe.de> for the following
+    encoding fixes, refs ticket #1.
+  [davidblewett]
+
+- Added a `expected_encodings` property to `SolrIndex` that lists the encodings
+    to expect text in; each is tried in turn to decode each parameter sent to
+    Solr. If none succeeds in decoding the text, we fall back to UTF8 and replace
+    failing characters.
+    http://wiki.apache.org/solr/FAQ#Why_don.27t_International_Characters_Work.3F
+  [davidblewett]
+
+- Added `_encode_param` method to `SolrIndex` to encode a given string to UTF8.
+  [davidblewett]
+
+- Modified `SolrIndex`'s '_apply_index` to send all parameters through the
+    `_encode_param` method.
+  [davidblewett]
+
+- Added a `test__apply_index_with_unicode` to ensure unicode queries are
+    handled correctly. 
+  [davidblewett]
+
 - Fix typo in solrpycore.
   [davidblewett]
 

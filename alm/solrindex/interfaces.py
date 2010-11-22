@@ -12,6 +12,9 @@ class ISolrIndex(IPluggableIndex):
     connection_manager = Attribute("""
         An ISolrConnectionManager that is specific to the ZODB connection.
         """)
+    expected_encodings = Attribute(
+        "List of encodings to try to transcode to UTF8 from when querying Solr"
+    )
 
 
 class ISolrConnectionManager(Interface):

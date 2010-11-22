@@ -151,6 +151,19 @@ class SolrIndexTests(unittest.TestCase):
             {'q': 'f1:somequery', 'fields': 'docid'}])
         self.assertEqual(responses, [[{'docid': 5}]])
 
+    def test__apply_index_with_unicode(self):
+        self._registerConnectionManager()
+        index = self._makeOne('id', 'someuri')
+        cm = index.connection_manager
+        request = {'f1': u'\xfcber'}
+        cm.connection.results = [[{'docid': 5}]]
+        result, queried = index._apply_index(request)
+        self.assertEqual(queried, ['f1'])
+        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertFalse(cm.changed)
+        self.assertEqual(cm.connection.queries, [
+            {'q': 'f1:\xc3\xbcber', 'fields': 'docid'}])
+
     def test_indexSize(self):
         self._registerConnectionManager()
         index = self._makeOne('id', 'someuri')
