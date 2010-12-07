@@ -1,22 +1,30 @@
 """SolrIndex and SolrConnectionManager"""
+import logging
+import os
+import transaction
 
 import Globals  # import Zope 2 dependencies in order
+
+from BTrees.IIBTree import IIBTree, IISet
+from OFS.PropertyManager import PropertyManager
+from OFS.SimpleItem import SimpleItem
+from Products.PluginIndexes.common.util import parseIndexRequest
+from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
+from transaction.interfaces import IDataManager
+from zope.app.component.hooks import getSite
+from zope.component import queryAdapter
+from zope.interface import implements
+
+try:
+    from Products.CMFCore.utils import getToolByName
+except ImportError:
+    from alm.solrindex.utils import getToolByName
 
 from alm.solrindex.interfaces import ISolrConnectionManager
 from alm.solrindex.interfaces import ISolrIndex
 from alm.solrindex.interfaces import ISolrIndexingWrapper
 from alm.solrindex.schema import SolrSchema
 from alm.solrindex.solrpycore import SolrConnection
-from BTrees.IIBTree import IIBTree, IISet
-from OFS.PropertyManager import PropertyManager
-from OFS.SimpleItem import SimpleItem
-from Products.PluginIndexes.common.util import parseIndexRequest
-from transaction.interfaces import IDataManager
-from zope.component import queryAdapter
-from zope.interface import implements
-import logging
-import os
-import transaction
 
 disable_solr = os.environ.get('DISABLE_SOLR')
 
@@ -47,6 +55,8 @@ class SolrIndex(PropertyManager, SimpleItem):
     manage_options = PropertyManager.manage_options + SimpleItem.manage_options
 
     _v_temp_cm = None  # An ISolrConnectionManager used during initialization
+    _highlighting = {} # A dict mapping a hash of the catalog filters
+                       # to highlighting data
     solr_uri_static = ''
     solr_uri_env_var = ''
     expected_encodings = ['utf-8']
@@ -178,6 +188,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         cm = self.connection_manager
         q = []           # List of query texts to pass as "q"
         queried = []     # List of field names queried
+        highlighted = [] # List of field names highlighted
         solr_params = {}
 
         # Get the Solr parameters from the catalog query
@@ -187,6 +198,8 @@ class SolrIndex(PropertyManager, SimpleItem):
         # Include parameters from field queries
         for field in cm.schema.fields:
             name = field.name
+            if field.stored:
+                highlighted.append(name)
             if not request.has_key(name):
                 continue
             field_query = request[name]
@@ -212,6 +225,8 @@ class SolrIndex(PropertyManager, SimpleItem):
             return None
 
         solr_params['fields'] = cm.schema.uniqueKey
+        if highlighted:
+            solr_params['highlight'] = highlighted
         if not solr_params.get('q'):
             # Solr requires a 'q' parameter, so provide an all-inclusive one
             solr_params['q'] = '*:*'
@@ -243,6 +258,17 @@ class SolrIndex(PropertyManager, SimpleItem):
             # Call a function with the Solr response object
             callback = request['solr_callback']
             callback(response)
+
+        catalog = get_catalog(self)
+        if transcoded_params.get('highlight', None) is None:
+            if catalog._v_brains is not AbstractCatalogBrain:
+                catalog.useBrains(AbstractCatalogBrain)
+        else:
+            hkey = sorted([(fname, request.get(fname))
+                           for fname in queried])
+            self._highlighting[tuple(hkey)] = response.highlighting
+            if catalog._v_brains is not HighlightingBrain:
+                catalog.useBrains(HighlightingBrain)
 
         uniqueKey = cm.schema.uniqueKey
         result = IIBTree()
@@ -396,3 +422,62 @@ def force_unicode(s, encoding='utf-8', errors='strict'):
        s = ' '.join([force_unicode(arg, encoding, errors) for arg in s])
 
     return s
+
+
+class HighlightingBrain(AbstractCatalogBrain):
+
+    def getHighlighting(self, combine_fields=True, **kwargs):
+        """This method retrieves the stored highlighting data for a given
+            set of fields.
+        `combine_fields` forces the output to a single list of highlighted
+            snippets.
+        If `combine_fields` is False, the output is a dictionary with the
+            field name as key and a list of the highlighted snippets as the
+            value.
+        The `kwargs` parameter is required to be able match up
+            a given set of highlights with the original query issued, when
+            multiple queries happen in a single request. If none are passed in,
+            the method will return an empty dictionary (or empty list, as above).
+        """
+        catalog = get_catalog(self)
+        indexes = get_solr_indexes(catalog)
+        result = {}
+        rid = unicode(self.getRID())
+        for index in indexes:
+            hkey = sorted(kwargs.items())
+            highlights = index._highlighting.get(tuple(hkey), None)
+            if highlights is None:
+                continue
+            brain_highlights = highlights.get(rid, {})
+
+            for key in kwargs:
+                val = brain_highlights.get(key, None)
+                if val is None:
+                    continue
+                if key not in result:
+                    result[key] = []
+                if isinstance(val, (tuple,list)):
+                    result[key].extend(val)
+                else:
+                    result[key].append(val)
+
+        if combine_fields:
+            combined = []
+            for val in result.values():
+                combined.extend(val)
+            return combined
+        else:
+            return result
+
+def get_catalog(obj):
+    catalog = getToolByName(obj, 'portal_catalog')
+    if hasattr(catalog, '_catalog'):
+        catalog = catalog._catalog
+    return catalog
+
+def get_solr_indexes(catalog):
+    # Use getIndex to ensure the object is wrapped correctly
+    return [catalog.getIndex(name)
+            for name, idx in catalog.indexes.items()
+                if ISolrIndex.providedBy(idx)]
+

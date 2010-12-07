@@ -4,6 +4,15 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Initial highlighting support:
+ - Imported `getToolByName` from `Products.CMFCore`, to be used on import failure.
+ - Updated `SolrIndex` to pass any fields from the Solr schema that have stored=True to be highlighted.
+ - Updated `SolrIndex` to store highlighting data returned from Solr in a `_highlighting` attribute.
+ - Added a `HighlightingBrain` class that subclasses `AbstractCatalogBrain` that looks up the highlighted data in `SolrIndex`.
+ - Added a `test__apply_index_with_highlighting` test; unfortunately, calling the `portal_catalog`
+    is not working in the tests currently.
+  [davidblewett]
+
 - Thanks to: "Schorr, Dr. Thomas" <thomas.schorr@haufe.de> for the following
     encoding fixes, refs ticket #1.
   [davidblewett]

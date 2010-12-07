@@ -164,6 +164,21 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(cm.connection.queries, [
             {'q': 'f1:\xc3\xbcber', 'fields': 'docid'}])
 
+    def test__apply_index_with_highlighting(self):
+        self._registerConnectionManager()
+        index = self._makeOne('id', 'someuri')
+        cm = index.connection_manager
+        request = {'f1': 'someuri'}
+        cm.connection.results = [[{'docid': 5}]]
+        f2 = cm.schema.fields[1]
+        f2.stored = True
+        result, queried = index._apply_index(request)
+        self.assertEqual(queried, ['f1'])
+        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertFalse(cm.changed)
+        self.assertEqual(cm.connection.queries, [
+            {'q': 'f1:someuri', 'fields': 'docid', 'highlight': [f2.name]}])
+
     def test_indexSize(self):
         self._registerConnectionManager()
         index = self._makeOne('id', 'someuri')
@@ -347,6 +362,7 @@ class DummySchema:
 class DummyField:
     def __init__(self, name):
         self.name = name
+        self.stored = False
         self.handler = DummyFieldHandler()
 
 
