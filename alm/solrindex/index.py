@@ -225,7 +225,12 @@ class SolrIndex(PropertyManager, SimpleItem):
             return None
 
         solr_params['fields'] = cm.schema.uniqueKey
-        if highlighted:
+        # We add highlighting by default for any field that is marked as stored.
+        # To disable this behavior, pass in a value for 'highlight' in
+        # solr_params. None will completely disable highlighting, True defaults
+        # to the list of fields queried, a specific list of names will narrow
+        # the list.
+        if 'highlight' not in solr_params and highlighted:
             solr_params['highlight'] = highlighted
         if not solr_params.get('q'):
             # Solr requires a 'q' parameter, so provide an all-inclusive one
