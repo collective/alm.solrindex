@@ -4,6 +4,10 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Fixed : IIBTree needs integer keys
+  http://plone.org/products/alm.solrindex/issues/3
+  [thomasdesvenain]
+
 - Initial highlighting support:
  - Imported `getToolByName` from `Products.CMFCore`, to be used on import failure.
  - Updated `SolrIndex` to pass any fields from the Solr schema that have stored=True to be highlighted.
@@ -32,7 +36,7 @@ Changelog
   [davidblewett]
 
 - Added a `test__apply_index_with_unicode` to ensure unicode queries are
-    handled correctly. 
+    handled correctly.
   [davidblewett]
 
 - Fix typo in solrpycore.
@@ -72,7 +76,7 @@ Changelog
 0.13 (2010-03-01)
 -----------------
 
-- commit to cleanup version #'s 
+- commit to cleanup version #'s
 
 0.12 (2010-03-01)
 -----------------

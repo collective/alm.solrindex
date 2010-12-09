@@ -278,7 +278,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         uniqueKey = cm.schema.uniqueKey
         result = IIBTree()
         for r in response:
-            result[r[uniqueKey]] = int(r.get('score', 0) * 1000)
+            result[int(r[uniqueKey])] = int(r.get('score', 0) * 1000)
 
         return result, queried
 
