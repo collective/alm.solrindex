@@ -4,6 +4,9 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Quick Plone 4 compatibility fixes
+  [thomasdesvenain]
+
 - Fixed : IIBTree needs integer keys
   http://plone.org/products/alm.solrindex/issues/3
   [thomasdesvenain]
