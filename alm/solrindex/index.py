@@ -190,7 +190,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         queried = []     # List of field names queried
         highlighted = [] # List of field names highlighted
         solr_params = {}
-
+        
         # Get the Solr parameters from the catalog query
         if request.has_key('solr_params'):
             solr_params.update(request['solr_params'])
@@ -265,15 +265,16 @@ class SolrIndex(PropertyManager, SimpleItem):
             callback(response)
 
         catalog = get_catalog(self)
-        if transcoded_params.get('highlight', None) is None:
-            if catalog._v_brains is not AbstractCatalogBrain:
-                catalog.useBrains(AbstractCatalogBrain)
-        else:
-            hkey = sorted([(fname, request.get(fname))
-                           for fname in queried])
-            self._highlighting[tuple(hkey)] = response.highlighting
-            if catalog._v_brains is not HighlightingBrain:
-                catalog.useBrains(HighlightingBrain)
+        if catalog:
+            if transcoded_params.get('highlight', None) is None:
+                if catalog._v_brains is not AbstractCatalogBrain:
+                    catalog.useBrains(AbstractCatalogBrain)
+            else:
+                hkey = sorted([(fname, request.get(fname))
+                               for fname in queried])
+                self._highlighting[tuple(hkey)] = response.highlighting
+                if catalog._v_brains is not HighlightingBrain:
+                    catalog.useBrains(HighlightingBrain)
 
         uniqueKey = cm.schema.uniqueKey
         result = IIBTree()
@@ -475,7 +476,10 @@ class HighlightingBrain(AbstractCatalogBrain):
             return result
 
 def get_catalog(obj):
-    catalog = getToolByName(obj, 'portal_catalog')
+    catalog = getToolByName(obj, 'portal_catalog', False)
+    if not catalog:
+        return None
+
     if hasattr(catalog, '_catalog'):
         catalog = catalog._catalog
     return catalog
