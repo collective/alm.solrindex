@@ -4,6 +4,10 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Search using ZCTextIndex '*' key character works with alm.solrindex.
+  Makes livesearch works with solrindex as SearchableText index.
+  [thomasdesvenain]
+
 - Quick Plone 4 compatibility fixes
   [thomasdesvenain]
 

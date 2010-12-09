@@ -364,6 +364,7 @@ class DummyField:
         self.name = name
         self.stored = False
         self.handler = DummyFieldHandler()
+        self.type = 'dummy'
 
 
 class DummyFieldHandler:

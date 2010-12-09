@@ -190,7 +190,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         queried = []     # List of field names queried
         highlighted = [] # List of field names highlighted
         solr_params = {}
-        
+
         # Get the Solr parameters from the catalog query
         if request.has_key('solr_params'):
             solr_params.update(request['solr_params'])
@@ -202,7 +202,12 @@ class SolrIndex(PropertyManager, SimpleItem):
                 highlighted.append(name)
             if not request.has_key(name):
                 continue
+
             field_query = request[name]
+            if field.type == 'text' and '*' in field_query:
+                # transparency with '*' search feature of ZCTextIndex
+                field_query = field_query.replace('*', '~')
+
             field_params = field.handler.parse_query(field, field_query)
             if field_params:
                 queried.append(name)
