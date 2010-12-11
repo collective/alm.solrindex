@@ -75,6 +75,68 @@ Solr response object. The response object conforms with the
 documentation of the ``solrpy`` package.
 
 
+Highlighting
+------------
+
+By default, highlighting data is requested for any field marked as ``stored``
+in the Solr schema. To disable this behavior, pass a ``highlight`` value of
+``None`` in the ``solr_params`` dictionary. A value of ``True`` will cause Solr
+to return highlighting data for the list of queried columns. If you pass in a
+sequence of field names, the requested highlighting data will be limited to
+that list.
+
+The retrieved data is stored in the ``_highlighting`` attribute on the
+SolrIndex object. To allow retrieval by the returned brains, they need to be
+able to retrieve the index object from the catalog. The code attempts to
+retrieve a named utility for this, and will attempt to use Acquisition to
+find the id of its immediate parent. Failing that, it defaults to using
+``portal_catalog``. If the code cannot determine the name of your catalog
+automatically and you want to use highlighting, you will need to change the
+``catalog_name`` property of the SolrIndex to reflect the correct value.
+
+To retrieve the highlighting data, the brain will have a ``getHighlighting``
+method. By default, this is set to return the highlighting data for all
+fields in a single list. You can limit this to specific fields, and change
+the return format to a dictionary keyed on field name by passing
+``combine_fields=False``.
+
+Example:
+
+    results = portal.portal_catalog(SearchableText='lincoln')
+    
+    results[0].getHighlighting()
+    [u'<em>lincoln</em>-collections  <em>Lincoln</em> ',
+     u'The collection of <em>Lincoln</em> plates']
+    
+    results[0].getHighlighting(combine_fields=False)
+    {'SearchableText': [u'<em>lincoln</em>-collections  <em>Lincoln</em> ']}
+     'Description': [u'The collection of <em>Lincoln</em> plates']}
+    
+    results[0].getHighlighting('Description')
+    [u'The collection of <em>Lincoln</em> plates']
+
+    results[0].getHighlighting('Description', combine_fields=False)
+    {'Description': [u'The collection of <em>Lincoln</em> plates']}
+
+The number of snippets returned, how the search terms are highlighted, and
+several other settings can all be tweaked in your Solr config.
+
+http://wiki.apache.org/solr/HighlightingParameters
+
+
+Encoding
+--------
+
+All data submitted to Solr for indexing or as a query must be encoded as
+UTF-8. To this end, the SolrIndex has an ``expected_encodings`` lines
+property that details the list of encodings for it to try to decode data
+from before transcoding to UTF-8. If you submit data to be indexed or
+queries with strings in a different encoding, you need to add that
+encoding to this list, before UTF-8.
+
+http://wiki.apache.org/solr/FAQ#Why_don.27t_International_Characters_Work.3F
+
+
 Sorting
 -------
 

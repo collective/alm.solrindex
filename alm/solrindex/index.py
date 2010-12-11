@@ -5,6 +5,7 @@ import transaction
 
 import Globals  # import Zope 2 dependencies in order
 
+from Acquisition import aq_parent
 from BTrees.IIBTree import IIBTree, IISet
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
@@ -50,6 +51,9 @@ class SolrIndex(PropertyManager, SimpleItem):
             'description':
             'The list of encodings to try to decode from before encoding '
             'to UTF-8 to submit to Solr.'},
+        {'id': 'catalog_name', 'type': 'string', 'mode': 'w',
+            'description':
+            'The name of the catalog this index is attached to.'},
         )
 
     manage_options = PropertyManager.manage_options + SimpleItem.manage_options
@@ -60,12 +64,18 @@ class SolrIndex(PropertyManager, SimpleItem):
     solr_uri_static = ''
     solr_uri_env_var = ''
     expected_encodings = ['utf-8']
+    catalog_name = 'portal_catalog'
 
-    def __init__(self, id, solr_uri_static='', expected_encodings=None):
+    def __init__(self, id, solr_uri_static='', expected_encodings=None,
+                 catalog_name=None):
         self.id = id
         self.solr_uri_static = solr_uri_static
         if expected_encodings is not None:
             self.expected_encodings = expected_encodings
+        if catalog_name is None:
+            parent = aq_parent(self)
+            if parent is not None:
+                self.catalog_name = parent.id
 
     @property
     def solr_uri(self):
@@ -154,6 +164,9 @@ class SolrIndex(PropertyManager, SimpleItem):
             value = getattr(obj, name, None)
             if callable(value):
                 value = value()
+            # Decode all strings using list from `expected_encodings`
+            if isinstance(value, str):
+                value = self._decode_param(value)
             value_list = field.handler.convert(value)
             if value_list:
                 values[name] = value_list
@@ -188,7 +201,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         cm = self.connection_manager
         q = []           # List of query texts to pass as "q"
         queried = []     # List of field names queried
-        highlighted = [] # List of field names highlighted
+        stored = []      # List of stored field names
         solr_params = {}
 
         # Get the Solr parameters from the catalog query
@@ -199,11 +212,11 @@ class SolrIndex(PropertyManager, SimpleItem):
         for field in cm.schema.fields:
             name = field.name
             if field.stored:
-                highlighted.append(name)
+                stored.append(name)
             if not request.has_key(name):
                 continue
 
-            field_query = request[name]
+            field_query = self._decode_param(request[name])
             if field.type == 'text' and '*' in field_query:
                 # transparency with '*' search feature of ZCTextIndex
                 field_query = field_query.replace('*', '~')
@@ -235,19 +248,57 @@ class SolrIndex(PropertyManager, SimpleItem):
         # solr_params. None will completely disable highlighting, True defaults
         # to the list of fields queried, a specific list of names will narrow
         # the list.
-        if 'highlight' not in solr_params and highlighted:
-            solr_params['highlight'] = highlighted
+        if 'highlight' not in solr_params and stored:
+            solr_params['highlight'] = stored
+        elif solr_params.get('highlight', None) == True:
+            solr_params['highlight'] = queried
         if not solr_params.get('q'):
             # Solr requires a 'q' parameter, so provide an all-inclusive one
             solr_params['q'] = '*:*'
 
-        log.debug("querying: %r", solr_params)
-
-        # http://wiki.apache.org/solr/FAQ#Why_don.27t_International_Characters_Work.3F
         # Decode all strings using list from `expected_encodings`,
-        # then transcode to UTF8
+        # then transcode to UTF-8
+        transcoded_params = self._transcode_params(solr_params)
+
+        log.debug("querying: %r", solr_params)
+        response = cm.connection.query(**transcoded_params)
+        if request.has_key('solr_callback'):
+            # Call a function with the Solr response object
+            callback = request['solr_callback']
+            callback(response)
+
+        catalog = get_catalog(self, name=self.catalog_name)
+        if catalog:
+            if transcoded_params.get('highlight', None) is None:
+                # Highlighting was explicitly disabled; remove customized
+                # brain class
+                if issubclass(catalog._v_brains, HighlightingBrain):
+                    catalog.useBrains(AbstractCatalogBrain)
+            else:
+                hkey = tuple(sorted([(fname, request.get(fname))
+                                     for fname in queried]))
+                self._highlighting[hkey] = response.highlighting
+                if not issubclass(catalog._v_brains, HighlightingBrain):
+                    # We use an inline class here so that the brain has
+                    # enough data to retrieve the stored highlighting data
+                    class myhighlightingbrains(HighlightingBrain):
+                        catalog_name = self.catalog_name
+                        highlighting_key = hkey
+                    catalog.useBrains(myhighlightingbrains)
+        else:
+            log.debug("Cannot retrieve catalog '%s', highlighting unavailable",
+                      self.catalog_name)
+
+        uniqueKey = cm.schema.uniqueKey
+        result = IIBTree()
+        for r in response:
+            result[int(r[uniqueKey])] = int(r.get('score', 0) * 1000)
+
+        return result, queried
+
+    def _transcode_params(self, params):
         transcoded_params = {}
-        for key, val in solr_params.items():
+        for key, val in params.items():
             enc_val = None
             if isinstance(val, basestring):
                 enc_val = self._encode_param(val)
@@ -261,34 +312,14 @@ class SolrIndex(PropertyManager, SimpleItem):
             else:
                 enc_val = val
             transcoded_params[key] = enc_val
-
-        response = cm.connection.query(**transcoded_params)
-        #response = cm.connection.query(**solr_params)
-        if request.has_key('solr_callback'):
-            # Call a function with the Solr response object
-            callback = request['solr_callback']
-            callback(response)
-
-        catalog = get_catalog(self)
-        if catalog:
-            if transcoded_params.get('highlight', None) is None:
-                if catalog._v_brains is not AbstractCatalogBrain:
-                    catalog.useBrains(AbstractCatalogBrain)
-            else:
-                hkey = sorted([(fname, request.get(fname))
-                               for fname in queried])
-                self._highlighting[tuple(hkey)] = response.highlighting
-                if catalog._v_brains is not HighlightingBrain:
-                    catalog.useBrains(HighlightingBrain)
-
-        uniqueKey = cm.schema.uniqueKey
-        result = IIBTree()
-        for r in response:
-            result[int(r[uniqueKey])] = int(r.get('score', 0) * 1000)
-
-        return result, queried
+        return transcoded_params
 
     def _encode_param(self, val):
+        decoded_val = self._decode_param(val)
+        # We don't want to raise a UnicodeEncodeError here
+        return decoded_val.encode('utf-8', 'replace')
+
+    def _decode_param(self, val):
         decoded_val = None
         for encoding in self.expected_encodings:
             try:
@@ -300,8 +331,7 @@ class SolrIndex(PropertyManager, SimpleItem):
             # work, we fall back to UTF8 and replace characters
             decoded_val = force_unicode(val, encoding='utf-8',
                                              errors='replace')
-        # We don't want to raise a UnicodeEncodeError here
-        return decoded_val.encode('utf-8', 'replace')
+        return decoded_val
 
     ## The ZCatalog Index management screen uses these methods ##
 
@@ -436,52 +466,66 @@ def force_unicode(s, encoding='utf-8', errors='strict'):
 
 
 class HighlightingBrain(AbstractCatalogBrain):
+    catalog_name = None
+    highlighting_key = None
 
-    def getHighlighting(self, combine_fields=True, **kwargs):
+    def getHighlighting(self, fields=None, combine_fields=True):
         """This method retrieves the stored highlighting data for a given
             set of fields.
+        `fields` is a sequence of field names to restrict the output to.
         `combine_fields` forces the output to a single list of highlighted
             snippets.
         If `combine_fields` is False, the output is a dictionary with the
             field name as key and a list of the highlighted snippets as the
             value.
-        The `kwargs` parameter is required to be able match up
-            a given set of highlights with the original query issued, when
-            multiple queries happen in a single request. If none are passed in,
-            the method will return an empty dictionary (or empty list, as above).
         """
-        catalog = get_catalog(self)
-        indexes = get_solr_indexes(catalog)
-        result = {}
-        rid = unicode(self.getRID())
-        for index in indexes:
-            hkey = sorted(kwargs.items())
-            highlights = index._highlighting.get(tuple(hkey), None)
-            if highlights is None:
-                continue
-            brain_highlights = highlights.get(rid, {})
+        highlighting = self._retrieve_highlighting()
+        if fields is None:
+            fields = highlighting.keys()
 
-            for key in kwargs:
-                val = brain_highlights.get(key, None)
-                if val is None:
-                    continue
-                if key not in result:
-                    result[key] = []
-                if isinstance(val, (tuple,list)):
-                    result[key].extend(val)
-                else:
-                    result[key].append(val)
-
+        results = dict([(fname, fhighlights)
+                        for fname, fhighlights in highlighting.items()
+                            if fname in fields])
         if combine_fields:
             combined = []
-            for val in result.values():
+            for val in results.values():
                 combined.extend(val)
             return combined
         else:
-            return result
+            return results
 
-def get_catalog(obj):
-    catalog = getToolByName(obj, 'portal_catalog', False)
+    # We intentionally use a mutable default argument here to cache the result
+    def _retrieve_highlighting(self, highlighting={}):
+        if highlighting:
+            return highlighting
+        catalog = get_catalog(self, name=self.catalog_name)
+        if catalog:
+            indexes = get_solr_indexes(catalog)
+            rid = unicode(self.getRID())
+            for index in indexes:
+                highlights = index._highlighting.get(self.highlighting_key, None)
+                if highlights is None:
+                    continue
+                brain_highlights = highlights.get(rid, {})
+
+                for fname, fhighlights in brain_highlights.items():
+                    if fname not in highlighting:
+                        highlighting[fname] = []
+                    if isinstance(fhighlights, (tuple,list)):
+                        highlighting[fname].extend(fhighlights)
+                    else:
+                        highlighting[fname].append(fhighlights)
+
+            return highlighting
+        else:
+            log.debug("Cannot retrieve catalog '%s', highlighting unavailable",
+                      self.catalog_name)
+
+
+def get_catalog(obj, name=None):
+    if name is None:
+        name = 'portal_catalog'
+    catalog = getToolByName(obj, name, False)
     if not catalog:
         return None
 
