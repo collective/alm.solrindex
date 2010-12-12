@@ -248,10 +248,10 @@ class SolrIndex(PropertyManager, SimpleItem):
         # solr_params. None will completely disable highlighting, True defaults
         # to the list of fields queried, a specific list of names will narrow
         # the list.
-        if 'highlight' not in solr_params and stored:
-            solr_params['highlight'] = stored
-        elif solr_params.get('highlight', None) == True:
+        if solr_params.get('highlight', None) == 'queried':
             solr_params['highlight'] = queried
+        elif 'highlight' in solr_params and stored:
+            solr_params['highlight'] = stored
         if not solr_params.get('q'):
             # Solr requires a 'q' parameter, so provide an all-inclusive one
             solr_params['q'] = '*:*'

@@ -4,6 +4,11 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Highlighting is not activated by default because there can be severe performance issues.
+  Pass 'highlight' parameter in solr_params to force it,
+  and pass 'queried' as 'highlight' value to force highlight on queried fields only.
+  [thomasdesvenain]
+
 - Search using ZCTextIndex '*' key character works with alm.solrindex.
   Makes livesearch works with solrindex as SearchableText index.
   [thomasdesvenain]
