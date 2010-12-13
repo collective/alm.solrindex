@@ -243,15 +243,20 @@ class SolrIndex(PropertyManager, SimpleItem):
             return None
 
         solr_params['fields'] = cm.schema.uniqueKey
-        # We add highlighting by default for any field that is marked as stored.
-        # To disable this behavior, pass in a value for 'highlight' in
-        # solr_params. None will completely disable highlighting, True defaults
-        # to the list of fields queried, a specific list of names will narrow
-        # the list.
+        # We only add highlighting for any field that is marked as stored.
+        # 'queried' returns the list of fields queried,
+        # a specific list of names will narrow the list.
+        to_highlight = []
         if solr_params.get('highlight', None) == 'queried':
             solr_params['highlight'] = queried
-        elif 'highlight' in solr_params and stored:
-            solr_params['highlight'] = stored
+        if 'highlight' in solr_params and stored:
+            for fname in solr_params['highlight']:
+                if fname in stored:
+                    to_highlight.append(fname)
+                else:
+                    log.debug("Requested field isn't marked as 'stored', "
+                              "cannot enable highlighting: %s", fname)
+            solr_params['highlight'] = to_highlight
         if not solr_params.get('q'):
             # Solr requires a 'q' parameter, so provide an all-inclusive one
             solr_params['q'] = '*:*'
@@ -269,22 +274,20 @@ class SolrIndex(PropertyManager, SimpleItem):
 
         catalog = get_catalog(self, name=self.catalog_name)
         if catalog:
-            if transcoded_params.get('highlight', None) is None:
-                # Highlighting was explicitly disabled; remove customized
-                # brain class
-                if issubclass(catalog._v_brains, HighlightingBrain):
-                    catalog.useBrains(AbstractCatalogBrain)
-            else:
-                hkey = tuple(sorted([(fname, request.get(fname))
-                                     for fname in queried]))
-                self._highlighting[hkey] = response.highlighting
-                if not issubclass(catalog._v_brains, HighlightingBrain):
-                    # We use an inline class here so that the brain has
-                    # enough data to retrieve the stored highlighting data
-                    class myhighlightingbrains(HighlightingBrain):
-                        catalog_name = self.catalog_name
-                        highlighting_key = hkey
-                    catalog.useBrains(myhighlightingbrains)
+           hkey = tuple(sorted([(fname, request.get(fname))
+                                for fname in to_highlight]))
+           self._highlighting[hkey] = response.highlighting
+           if not issubclass(catalog._v_brains, HighlightingBrain) or \
+              (hasattr(catalog._v_brains, 'highlighting_key') and \
+               catalog._v_brains.highlighting_key != hkey) or \
+              (hasattr(catalog._v_brains, 'catalog_name') and \
+               catalog._v_brains.catalog_name != self.catalog_name):
+               # We use an inline class here so that the brain has
+               # enough data to retrieve the stored highlighting data
+               class myhighlightingbrains(HighlightingBrain):
+                   catalog_name = self.catalog_name
+                   highlighting_key = hkey
+               catalog.useBrains(myhighlightingbrains)
         else:
             log.debug("Cannot retrieve catalog '%s', highlighting unavailable",
                       self.catalog_name)
@@ -503,7 +506,8 @@ class HighlightingBrain(AbstractCatalogBrain):
             indexes = get_solr_indexes(catalog)
             rid = unicode(self.getRID())
             for index in indexes:
-                highlights = index._highlighting.get(self.highlighting_key, None)
+                highlights = index._highlighting.get(self.highlighting_key,
+                                                     None)
                 if highlights is None:
                     continue
                 brain_highlights = highlights.get(rid, {})

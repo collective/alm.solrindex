@@ -78,12 +78,13 @@ documentation of the ``solrpy`` package.
 Highlighting
 ------------
 
-By default, highlighting data is requested for any field marked as ``stored``
-in the Solr schema. To disable this behavior, pass a ``highlight`` value of
-``None`` in the ``solr_params`` dictionary. A value of ``True`` will cause Solr
-to return highlighting data for the list of queried columns. If you pass in a
-sequence of field names, the requested highlighting data will be limited to
-that list.
+Highlighting data may requested for any field marked as ``stored``
+in the Solr schema. To enable this feature, pass a ``highlight`` value of
+either ``True``, or a list of field names to highlight. A value of ``queried``
+will cause Solr to return highlighting data for the list of queried columns.
+If you pass in a sequence of field names, the requested highlighting data
+will be limited to that list. You can also enable it by default in your Solr
+config file.
 
 The retrieved data is stored in the ``_highlighting`` attribute on the
 SolrIndex object. To allow retrieval by the returned brains, they need to be
@@ -102,7 +103,8 @@ the return format to a dictionary keyed on field name by passing
 
 Example:
 
-    results = portal.portal_catalog(SearchableText='lincoln')
+    results = portal.portal_catalog(SearchableText='lincoln',
+                                    solr_params={'highlight': True})
     
     results[0].getHighlighting()
     [u'<em>lincoln</em>-collections  <em>Lincoln</em> ',
