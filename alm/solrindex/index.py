@@ -275,7 +275,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         catalog = get_catalog(self, name=self.catalog_name)
         if catalog:
            hkey = tuple(sorted([(fname, request.get(fname))
-                                for fname in to_highlight]))
+                                for fname in queried]))
            self._highlighting[hkey] = response.highlighting
            if not issubclass(catalog._v_brains, HighlightingBrain) or \
               (hasattr(catalog._v_brains, 'highlighting_key') and \
@@ -482,13 +482,25 @@ class HighlightingBrain(AbstractCatalogBrain):
             field name as key and a list of the highlighted snippets as the
             value.
         """
-        highlighting = self._retrieve_highlighting()
+        highlighting = {}
+        rid = unicode(self.getRID())
+        highlights = self._retrieve_highlighting()
+        brain_highlights = highlights.get(rid, {})
         if fields is None:
-            fields = highlighting.keys()
+            fields = brain_highlights.keys()
+
+        for fname, fhighlights in brain_highlights.items():
+            if fname not in highlighting:
+                highlighting[fname] = []
+            if isinstance(fhighlights, (tuple,list)):
+                highlighting[fname].extend(fhighlights)
+            else:
+                highlighting[fname].append(fhighlights)
 
         results = dict([(fname, fhighlights)
                         for fname, fhighlights in highlighting.items()
                             if fname in fields])
+
         if combine_fields:
             combined = []
             for val in results.values():
@@ -504,21 +516,13 @@ class HighlightingBrain(AbstractCatalogBrain):
         catalog = get_catalog(self, name=self.catalog_name)
         if catalog:
             indexes = get_solr_indexes(catalog)
-            rid = unicode(self.getRID())
             for index in indexes:
                 highlights = index._highlighting.get(self.highlighting_key,
                                                      None)
                 if highlights is None:
                     continue
-                brain_highlights = highlights.get(rid, {})
-
-                for fname, fhighlights in brain_highlights.items():
-                    if fname not in highlighting:
-                        highlighting[fname] = []
-                    if isinstance(fhighlights, (tuple,list)):
-                        highlighting[fname].extend(fhighlights)
-                    else:
-                        highlighting[fname].append(fhighlights)
+                for rid, values in highlights.items():
+                    highlighting[rid] = values
 
             return highlighting
         else:
