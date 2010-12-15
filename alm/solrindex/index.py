@@ -272,25 +272,29 @@ class SolrIndex(PropertyManager, SimpleItem):
             callback = request['solr_callback']
             callback(response)
 
-        catalog = get_catalog(self, name=self.catalog_name)
-        if catalog:
-           hkey = tuple(sorted([(fname, request.get(fname))
-                                for fname in queried]))
-           self._highlighting[hkey] = response.highlighting
-           if not issubclass(catalog._v_brains, HighlightingBrain) or \
-              (hasattr(catalog._v_brains, 'highlighting_key') and \
-               catalog._v_brains.highlighting_key != hkey) or \
-              (hasattr(catalog._v_brains, 'catalog_name') and \
-               catalog._v_brains.catalog_name != self.catalog_name):
-               # We use an inline class here so that the brain has
-               # enough data to retrieve the stored highlighting data
-               class myhighlightingbrains(HighlightingBrain):
-                   catalog_name = self.catalog_name
-                   highlighting_key = hkey
-               catalog.useBrains(myhighlightingbrains)
-        else:
-            log.debug("Cannot retrieve catalog '%s', highlighting unavailable",
-                      self.catalog_name)
+        # Since highlighting can be either enabled by default in the Solr
+        # config, or as a query parameter we just check to see if the
+        # response has any highlighting returned.
+        if hasattr(response, 'highlighting'):
+            catalog = get_catalog(self, name=self.catalog_name)
+            if catalog:
+               hkey = tuple(sorted([(fname, request.get(fname))
+                                    for fname in queried]))
+               self._highlighting[hkey] = response.highlighting
+               if not issubclass(catalog._v_brains, HighlightingBrain) or \
+                  (hasattr(catalog._v_brains, 'highlighting_key') and \
+                   catalog._v_brains.highlighting_key != hkey) or \
+                  (hasattr(catalog._v_brains, 'catalog_name') and \
+                   catalog._v_brains.catalog_name != self.catalog_name):
+                   # We use an inline class here so that the brain has
+                   # enough data to retrieve the stored highlighting data
+                   class myhighlightingbrains(HighlightingBrain):
+                       catalog_name = self.catalog_name
+                       highlighting_key = hkey
+                   catalog.useBrains(myhighlightingbrains)
+            else:
+                log.debug("Cannot retrieve catalog '%s', highlighting unavailable",
+                          self.catalog_name)
 
         uniqueKey = cm.schema.uniqueKey
         result = IIBTree()
