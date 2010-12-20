@@ -117,3 +117,16 @@ class TextFieldHandler(DefaultFieldHandler):
             return None
 
         return {'q': u'+%s:%s' % (name, quote_query(query_str))}
+
+
+    def convert(self, data):
+        if data is None:
+            return ()
+        if hasattr(data, '__iter__') and not isinstance(data, basestring):
+            data_seq = data
+        else:
+            data_seq = [data]
+        res = [self.convert_one(value) for value in data_seq]
+        return [" ".join(res)]
+
+

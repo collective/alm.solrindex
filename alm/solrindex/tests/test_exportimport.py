@@ -9,6 +9,8 @@ _SOLRINDEX_XML = """\
 <index name="Solr" meta_type="SolrIndex">
  <property name="solr_uri_static">http://localhost:8988/solr</property>
  <property name="solr_uri_env_var"></property>
+ <property name="expected_encodings"/>
+ <property name="catalog_name"></property>
 </index>
 """
 
