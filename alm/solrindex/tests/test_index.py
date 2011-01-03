@@ -168,9 +168,10 @@ class SolrIndexTests(unittest.TestCase):
         self._registerConnectionManager()
         index = self._makeOne('id', 'someuri')
         cm = index.connection_manager
-        request = {'f1': 'someuri', 'solr_params': {'highlight': True}}
-        cm.connection.results = [[{'docid': 5}]]
         f2 = cm.schema.fields[1]
+        request = {'f1': 'someuri',
+                   'solr_params': {'highlight': [f2.name]}}
+        cm.connection.results = [[{'docid': 5}]]
         f2.stored = True
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
