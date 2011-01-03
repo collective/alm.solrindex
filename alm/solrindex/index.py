@@ -59,8 +59,6 @@ class SolrIndex(PropertyManager, SimpleItem):
     manage_options = PropertyManager.manage_options + SimpleItem.manage_options
 
     _v_temp_cm = None  # An ISolrConnectionManager used during initialization
-    _highlighting = {} # A dict mapping a hash of the catalog filters
-                       # to highlighting data
     solr_uri_static = ''
     solr_uri_env_var = ''
     expected_encodings = ['utf-8']
@@ -280,7 +278,6 @@ class SolrIndex(PropertyManager, SimpleItem):
             if catalog:
                hkey = tuple(sorted([(fname, request.get(fname))
                                     for fname in queried]))
-               self._highlighting[hkey] = response.highlighting
                if not issubclass(catalog._v_brains, HighlightingBrain) or \
                   (hasattr(catalog._v_brains, 'highlighting_key') and \
                    catalog._v_brains.highlighting_key != hkey) or \
@@ -289,9 +286,14 @@ class SolrIndex(PropertyManager, SimpleItem):
                    # We use an inline class here so that the brain has
                    # enough data to retrieve the stored highlighting data
                    class myhighlightingbrains(HighlightingBrain):
-                       catalog_name = self.catalog_name
                        highlighting_key = hkey
+                       highlighting = response.highlighting
                    catalog.useBrains(myhighlightingbrains)
+                   log.debug("Creating new custom brain class, hkey: '%s'",
+                             hkey)
+               else:
+                   log.debug("Using existing custom brain class, hkey: '%s'",
+                             hkey)
             else:
                 log.debug("Cannot retrieve catalog '%s', highlighting unavailable",
                           self.catalog_name)
@@ -473,8 +475,9 @@ def force_unicode(s, encoding='utf-8', errors='strict'):
 
 
 class HighlightingBrain(AbstractCatalogBrain):
-    catalog_name = None
-    highlighting_key = None
+    highlighting = None     # Data returned by Solr, indexed by RID
+    highlighting_key = None # Submitted search terms, to see if we need to
+                            # rebuild the custom class
 
     def getHighlighting(self, fields=None, combine_fields=True):
         """This method retrieves the stored highlighting data for a given
@@ -488,8 +491,7 @@ class HighlightingBrain(AbstractCatalogBrain):
         """
         highlighting = {}
         rid = unicode(self.getRID())
-        highlights = self._retrieve_highlighting()
-        brain_highlights = highlights.get(rid, {})
+        brain_highlights = self.highlighting.get(rid, {})
         if fields is None:
             fields = brain_highlights.keys()
 
@@ -512,26 +514,6 @@ class HighlightingBrain(AbstractCatalogBrain):
             return combined
         else:
             return results
-
-    # We intentionally use a mutable default argument here to cache the result
-    def _retrieve_highlighting(self, highlighting={}):
-        if highlighting:
-            return highlighting
-        catalog = get_catalog(self, name=self.catalog_name)
-        if catalog:
-            indexes = get_solr_indexes(catalog)
-            for index in indexes:
-                highlights = index._highlighting.get(self.highlighting_key,
-                                                     None)
-                if highlights is None:
-                    continue
-                for rid, values in highlights.items():
-                    highlighting[rid] = values
-
-            return highlighting
-        else:
-            log.debug("Cannot retrieve catalog '%s', highlighting unavailable",
-                      self.catalog_name)
 
 
 def get_catalog(obj, name=None):

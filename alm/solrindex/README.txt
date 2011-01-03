@@ -86,14 +86,14 @@ If you pass in a sequence of field names, the requested highlighting data
 will be limited to that list. You can also enable it by default in your Solr
 config file.
 
-The retrieved data is stored in the ``_highlighting`` attribute on the
-SolrIndex object. To allow retrieval by the returned brains, they need to be
-able to retrieve the index object from the catalog. The code attempts to
-retrieve a named utility for this, and will attempt to use Acquisition to
-find the id of its immediate parent. Failing that, it defaults to using
-``portal_catalog``. If the code cannot determine the name of your catalog
-automatically and you want to use highlighting, you will need to change the
-``catalog_name`` property of the SolrIndex to reflect the correct value.
+The retrieved data is stored in the ``highlighting`` attribute on the
+returned brain. To use the custom ``HighlightingBrain``, the index needs to
+be able to connect to its parent catalog. The code attempts to retrieve a
+named utility for this, and will attempt to use Acquisition to find the id
+of its immediate parent. Failing that, it defaults to using ``portal_catalog``.
+If the code cannot determine the name of your catalog automatically and you
+want to use highlighting, you will need to change the ``catalog_name``
+property of the SolrIndex to reflect the correct value.
 
 To retrieve the highlighting data, the brain will have a ``getHighlighting``
 method. By default, this is set to return the highlighting data for all
