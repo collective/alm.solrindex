@@ -4,6 +4,10 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Improved unicode handling to correctly handle dictionaries passed in as a field search,
+  in `SolrIndex._decode_param`.
+  [davidblewett]
+
 - Highlighting is not activated by default because there can be severe performance issues.
   Pass 'highlight' parameter in solr_params to force it,
   and pass 'queried' as 'highlight' value to force highlight on queried fields only.
