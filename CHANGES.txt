@@ -4,6 +4,9 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Extended ZCTextIndex support when a dictionary is passed in as a field search.
+  [davidblewett]
+
 - Improved unicode handling to correctly handle dictionaries passed in as a field search,
   in `SolrIndex._decode_param`.
   [davidblewett]

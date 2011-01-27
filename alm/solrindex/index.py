@@ -215,9 +215,14 @@ class SolrIndex(PropertyManager, SimpleItem):
                 continue
 
             field_query = self._decode_param(request[name])
-            if field.type == 'text' and '*' in field_query:
+            if field.type == 'text':
                 # transparency with '*' search feature of ZCTextIndex
-                field_query = field_query.replace('*', '~')
+                if isinstance(field_query, dict) and \
+                   '*' in field_query['query']:
+                    field_query['query'] = field_query['query'].replace('*',
+                                                                        '~')
+                elif '*' in field_query:
+                    field_query = field_query.replace('*', '~')
 
             field_params = field.handler.parse_query(field, field_query)
             if field_params:
