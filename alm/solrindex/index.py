@@ -250,10 +250,11 @@ class SolrIndex(PropertyManager, SimpleItem):
         # 'queried' returns the list of fields queried,
         # a specific list of names will narrow the list.
         to_highlight = []
-        if solr_params.get('highlight', None) == 'queried':
-            solr_params['highlight'] = queried
-        if 'highlight' in solr_params and stored:
-            for fname in solr_params['highlight']:
+        hfields = solr_params.get('highlight', None)
+        if hfields and stored:
+            if hfields == 'queried':
+                solr_params['highlight'] = queried
+            for fname in hfields:
                 if fname in stored:
                     to_highlight.append(fname)
                 else:

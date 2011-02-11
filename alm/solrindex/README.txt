@@ -78,13 +78,14 @@ documentation of the ``solrpy`` package.
 Highlighting
 ------------
 
-Highlighting data may requested for any field marked as ``stored``
+Highlighting data may be requested for any field marked as ``stored``
 in the Solr schema. To enable this feature, pass a ``highlight`` value of
 either ``True``, or a list of field names to highlight. A value of ``queried``
 will cause Solr to return highlighting data for the list of queried columns.
 If you pass in a sequence of field names, the requested highlighting data
 will be limited to that list. You can also enable it by default in your Solr
-config file.
+config file. If you do enable it by default in the config file, but don't
+want it for a particular query, you must pass ``hl``:``off`` in solr_params.
 
 The retrieved data is stored in the ``highlighting`` attribute on the
 returned brain. To use the custom ``HighlightingBrain``, the index needs to
