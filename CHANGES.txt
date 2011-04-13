@@ -4,6 +4,9 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Update test setup so that it is testing against Solr 1.4
+  [claytron]
+
 - Extended ZCTextIndex support when a dictionary is passed in as a field search.
   [davidblewett]
 
