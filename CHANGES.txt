@@ -4,6 +4,11 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Handle empty ``dismax`` queries since a ``*:*`` value for ``q`` is not
+  interpreted for the ``dismax`` query handler and returns no results
+  rather than all results.
+  [claytron]
+
 - Update test setup so that it is testing against Solr 1.4
   [claytron]
 

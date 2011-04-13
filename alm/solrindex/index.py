@@ -262,8 +262,15 @@ class SolrIndex(PropertyManager, SimpleItem):
                               "cannot enable highlighting: %s", fname)
             solr_params['highlight'] = to_highlight
         if not solr_params.get('q'):
-            # Solr requires a 'q' parameter, so provide an all-inclusive one
-            solr_params['q'] = '*:*'
+            # Solr requires a 'q' parameter, so provide an
+            # all-inclusive one. If the query is using dismax, then
+            # use the 'q.alt' parameter since dismax does not know how
+            # to parse '*:*' in the 'q' param.
+            if solr_params.get('defType', '') == 'dismax':
+                solr_params['q.alt'] = '*:*'
+                solr_params['q'] = ''
+            else:
+                solr_params['q'] = '*:*'
 
         # Decode all strings using list from `expected_encodings`,
         # then transcode to UTF-8
