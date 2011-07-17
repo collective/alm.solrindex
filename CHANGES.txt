@@ -4,6 +4,9 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Add uninstall profile, restoring the default Plone indizes.
+  [thet]
+
 - Handle empty ``dismax`` queries since a ``*:*`` value for ``q`` is not
   interpreted for the ``dismax`` query handler and returns no results
   rather than all results.
