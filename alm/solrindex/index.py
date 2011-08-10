@@ -20,6 +20,25 @@ try:
     from Products.CMFCore.utils import getToolByName
 except ImportError:
     from alm.solrindex.utils import getToolByName
+try:
+    from Products.ATContentTypes.criteria import (
+        _criterionRegistry,registerCriterion, unregisterCriterion,
+        STRING_INDICES, TEXT_INDICES, ATSimpleStringCriterion)
+except ImportError:
+    pass
+else:
+    # If we do not update this, Collections will not be able to use
+    # the SearchableText criterion when that has SolrIndex as
+    # meta_type.
+    TEXT_INDICES += ('SolrIndex', )
+    STRING_INDICES += ('SolrIndex', )
+    orig = _criterionRegistry.criterion2index['ATSimpleStringCriterion']
+    new_indices = orig + ('SolrIndex', )
+    # Note that simply by importing, the criterion has already been
+    # registered, so our changes above are too late really.  We fix
+    # that here.
+    unregisterCriterion(ATSimpleStringCriterion)
+    registerCriterion(ATSimpleStringCriterion, new_indices)
 
 from alm.solrindex.interfaces import ISolrConnectionManager
 from alm.solrindex.interfaces import ISolrIndex
@@ -35,6 +54,18 @@ log = logging.getLogger(__name__)
 class SolrIndex(PropertyManager, SimpleItem):
 
     implements(ISolrIndex)
+
+    # Be careful what meta_type you set here, otherwise there will be
+    # no available criteria (like ATSimpleStringCriterion) available
+    # for this index in the portal_atct tool.  If you run into trouble
+    # with this, have a look at
+    # Products.ATContentTypes.criteria.registerCriterion and
+    # Products.ATContentTypes.criteria.TEXT_INDICES
+    #
+    # Note that the meta_type is also set in the configure.zcml.  Some
+    # non-deterministic behaviour [at least for me, Maurits] has been
+    # observed here.
+    meta_type = 'SolrIndex'
 
     _properties = (
         {'id': 'solr_uri_static', 'type': 'string', 'mode': 'w',
