@@ -176,7 +176,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         # Get the Solr parameters from the catalog query
         if request.has_key('solr_params'):
             solr_params.update(request['solr_params'])
-
+        
         # Include parameters from field queries
         for field in cm.schema.fields:
             name = field.name
@@ -208,6 +208,11 @@ class SolrIndex(PropertyManager, SimpleItem):
         if not solr_params.get('q'):
             # Solr requires a 'q' parameter, so provide an all-inclusive one
             solr_params['q'] = '*:*'
+
+        if not solr_params.get('rows'):
+            solr_params['rows'] = 10000 # SOLR does not support returning unlimited rows, but
+                                        # we can set it to a "sanity cap on the result size"
+                                        # as the SORL FAQ calls it, the default of 10 is too small
 
         log.debug("querying: %r", solr_params)
 
