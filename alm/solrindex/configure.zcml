@@ -4,8 +4,8 @@
     xmlns:five="http://namespaces.zope.org/five"
     >
 
-<includePlugins package="." />
-<includeDependencies package="." />
+<!-- <includePlugins package="." /> -->
+<!-- <includeDependencies package="." /> -->
 
 <!-- GenericSetup integration -->
 <include file="profiles.zcml" />
@@ -42,6 +42,20 @@
     factory=".handlers.TextFieldHandler"
     provides=".interfaces.ISolrFieldHandler"
     name="solr.TextField"
+    />
+
+<!-- Use TextFieldHandler for fields of Java class "solr.StrField" -->
+<utility
+    factory=".handlers.StringFieldHandler"
+    provides=".interfaces.ISolrFieldHandler"
+    name="solr.StrField"
+    />
+
+<!-- Use TextFieldHandler for fields of name "getCMSPath" -->
+<utility
+    factory=".handlers.PathFieldHandler"
+    provides=".interfaces.ISolrFieldHandler"
+    name="getCMSPath"
     />
 
 <five:registerClass

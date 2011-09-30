@@ -13,7 +13,7 @@ from datetime import date, datetime
 from DateTime.DateTime import DateTime
 
 # See: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html
-_escape_chars = re.compile(r'([-+&|!(){}\[\]^"~*?:\\])')
+_escape_chars = re.compile(r'([-+&|!(){}\[\]^"~?:\\])')
 
 invalid_xml_re = re.compile(r'[\x00-\x08\x0B\x0C\x0E-\x1F]')
 
@@ -32,7 +32,7 @@ class DefaultFieldHandler(object):
     def parse_query(self, field, field_query):
         name = field.name
         request = {name: field_query}
-        record = parseIndexRequest(request, name, ('query', 'operator'))
+        record = parseIndexRequest(request, name, ('query', 'operator', 'invert'))
         if not record.keys:
             return None
 
@@ -42,17 +42,24 @@ class DefaultFieldHandler(object):
         if not parts:
             return None
 
+        invert = record.get('invert', False)
         if len(parts) == 1:
             escaped = solr_escape(parts[0])
-            return {'fq': u'%s:"%s"' % (name, escaped)}
+            if invert:
+                return {'fq': u'NOT %s:"%s"' % (name, escaped)} 
+            else:
+                return {'fq': u'%s:"%s"' % (name, escaped)}
 
         operator = record.get('operator', self.default_operator)
         if operator not in self.operators:
             raise AssertionError("Invalid operator: %s" % operator)
 
-        parts_fmt = [u'"%s"' % solr_escape(part) for part in parts]
+        parts_fmt = [u'%s' % solr_escape(part) for part in parts]
         s = (u' %s ' % operator.upper()).join(parts_fmt)
-        return {'fq': u'%s:(%s)' % (name, s)}
+        if invert:
+            return {'fq': u'NOT %s:(%s)' % (name, s)}
+        else:
+            return {'fq': u'%s:(%s)' % (name, s)}
 
     def convert(self, data):
         if data is None:
@@ -117,3 +124,59 @@ class TextFieldHandler(DefaultFieldHandler):
             return None
 
         return {'q': u'+%s:%s' % (name, quote_query(query_str))}
+
+class StringFieldHandler(DefaultFieldHandler):
+
+    def parse_query(self, field, field_query):
+        name = field.name
+        request = {name: field_query}
+        record = parseIndexRequest(request, name, ('query','invert','filter_query'))
+        if not record.keys:
+            return None
+
+        invert = record.get('invert', False)
+        filter_query = record.get('filter_query', False)
+
+        query_str = ' '.join(record.keys)
+        if not query_str:
+            return None
+
+        query_type = filter_query and 'fq' or 'q'
+        query_operator = invert and '-' or '+'
+        
+        return {'%s' % query_type : u'%s%s:%s' % (query_operator, name, quote_query(query_str))}
+
+class PathFieldHandler(DefaultFieldHandler):
+
+    operators = ('and', 'or')
+    default_operator = 'or'
+
+    def parse_query(self, field, field_query):
+        name = field.name
+        request = {name: field_query}
+        record = parseIndexRequest(request, name, ('query', 'operator'))
+        if not record.keys:
+            return None
+
+        parts = []
+        for part in record.keys:
+            parts.extend(self.convert(part))
+        if not parts:
+            return None
+
+        if len(parts) == 1:
+            escaped = solr_escape(parts[0])
+            if escaped and escaped[-1]!='/':
+                escaped = "%s/" % escaped
+            if escaped and escaped[-1]!='*':
+                escaped = "%s*" % escaped
+            return {'fq': u'%s:"%s"' % (name, escaped)}
+
+        operator = record.get('operator', self.default_operator)
+        if operator not in self.operators:
+            raise AssertionError("Invalid operator: %s" % operator)
+
+        parts_fmt = [u'%s/' % solr_escape(part) for part in parts if part[-1]!='/']
+        parts_fmt = [u'%s*' % solr_escape(part) for part in parts_fmt if part[-1]!='*']
+        s = (u' %s ' % operator.upper()).join(parts_fmt)
+        return {'fq': u'%s:(%s)' % (name, s)}
