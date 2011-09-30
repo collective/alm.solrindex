@@ -7,8 +7,7 @@
 Add Solr Index
 </p>
 
-<form action="." method="post"
-   tal:attributes="action request/ACTUAL_URL">
+<form action="addSolrIndex.html" method="post">
 <table cellspacing="0" cellpadding="2" border="0">
   <tr>
     <td align="left" valign="top">
