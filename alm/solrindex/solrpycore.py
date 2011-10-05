@@ -466,6 +466,11 @@ class SolrConnection:
                     params['hl.fl'] = ",".join(fields)
 
         if q is not None:
+            # for more complex queries it is highly likely that we will face more
+            # than one q param Solr will only accept one and ignore the others
+            # so join them together with spaces ( and let the default operator do the rest)
+            if isinstance(q, list): 
+                q=u' '.join(q)
             params['q'] = q
 
         if fields:
