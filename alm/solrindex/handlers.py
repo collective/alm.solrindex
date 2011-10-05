@@ -170,7 +170,7 @@ class PathFieldHandler(DefaultFieldHandler):
                 escaped = "%s/" % escaped
             if escaped and escaped[-1]!='*':
                 escaped = "%s*" % escaped
-            return {'fq': u'%s:"%s"' % (name, escaped)}
+            return {'fq': u'%s:%s' % (name, escaped)}
 
         operator = record.get('operator', self.default_operator)
         if operator not in self.operators:
