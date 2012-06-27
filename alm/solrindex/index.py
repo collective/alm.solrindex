@@ -303,6 +303,16 @@ class SolrIndex(PropertyManager, SimpleItem):
             else:
                 solr_params['q'] = '*:*'
 
+        # Additional fields can be added into the query above in the
+        # field_params check. The 'q' variable cannot be sent to solr
+        # multiple times (as is the case when it is a list). Only the
+        # first instance of the 'q' param will be recognized by solr, so
+        # we turn it back into a string here.
+        #
+        # XXX: Should the logic for field_params be changed above?
+        if isinstance(solr_params['q'], list):
+            solr_params['q'] = ' '.join(solr_params['q'])
+
         # Decode all strings using list from `expected_encodings`,
         # then transcode to UTF-8
         transcoded_params = self._transcode_params(solr_params)
