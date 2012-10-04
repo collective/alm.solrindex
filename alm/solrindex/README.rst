@@ -109,15 +109,15 @@ Example:
     
     results[0].getHighlighting()
     [u'<em>lincoln</em>-collections  <em>Lincoln</em> ',
-     u'The collection of <em>Lincoln</em> plates']
+    u'The collection of <em>Lincoln</em> plates']
     
     results[0].getHighlighting(combine_fields=False)
     {'SearchableText': [u'<em>lincoln</em>-collections  <em>Lincoln</em> ']}
-     'Description': [u'The collection of <em>Lincoln</em> plates']}
+    'Description': [u'The collection of <em>Lincoln</em> plates']}
     
     results[0].getHighlighting('Description')
     [u'The collection of <em>Lincoln</em> plates']
-
+    
     results[0].getHighlighting('Description', combine_fields=False)
     {'Description': [u'The collection of <em>Lincoln</em> plates']}
 

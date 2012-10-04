@@ -44,34 +44,36 @@ Changelog
   [thomasdesvenain]
 
 - Initial highlighting support:
- - Imported `getToolByName` from `Products.CMFCore`, to be used on import failure.
- - Updated `SolrIndex` to pass any fields from the Solr schema that have stored=True to be highlighted.
- - Updated `SolrIndex` to store highlighting data returned from Solr in a `_highlighting` attribute.
- - Added a `HighlightingBrain` class that subclasses `AbstractCatalogBrain` that looks up the highlighted data in `SolrIndex`.
- - Added a `test__apply_index_with_highlighting` test; unfortunately, calling the `portal_catalog`
+
+  - Imported `getToolByName` from `Products.CMFCore`, to be used on import failure.
+  - Updated `SolrIndex` to pass any fields from the Solr schema that have stored=True to be highlighted.
+  - Updated `SolrIndex` to store highlighting data returned from Solr in a `_highlighting` attribute.
+  - Added a `HighlightingBrain` class that subclasses `AbstractCatalogBrain` that looks up the highlighted data in `SolrIndex`.
+  - Added a `test__apply_index_with_highlighting` test; unfortunately, calling the `portal_catalog`
     is not working in the tests currently.
+
   [davidblewett]
 
 - Thanks to: "Schorr, Dr. Thomas" <thomas.schorr@haufe.de> for the following
-    encoding fixes, refs ticket #1.
+  encoding fixes, refs ticket #1.
   [davidblewett]
 
 - Added a `expected_encodings` property to `SolrIndex` that lists the encodings
-    to expect text in; each is tried in turn to decode each parameter sent to
-    Solr. If none succeeds in decoding the text, we fall back to UTF8 and replace
-    failing characters.
-    http://wiki.apache.org/solr/FAQ#Why_don.27t_International_Characters_Work.3F
+  to expect text in; each is tried in turn to decode each parameter sent to
+  Solr. If none succeeds in decoding the text, we fall back to UTF8 and replace
+  failing characters.
+  http://wiki.apache.org/solr/FAQ#Why_don.27t_International_Characters_Work.3F
   [davidblewett]
 
 - Added `_encode_param` method to `SolrIndex` to encode a given string to UTF8.
   [davidblewett]
 
 - Modified `SolrIndex`'s '_apply_index` to send all parameters through the
-    `_encode_param` method.
+  `_encode_param` method.
   [davidblewett]
 
 - Added a `test__apply_index_with_unicode` to ensure unicode queries are
-    handled correctly.
+  handled correctly.
   [davidblewett]
 
 - Fix typo in solrpycore.
