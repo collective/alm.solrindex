@@ -9,14 +9,14 @@ def read(*rnames):
     return open(os.path.join(os.path.dirname(__file__), *rnames)).read()
 
 long_description = (
-    read('README.txt')
+    read('README.rst')
     + '\n' +
     'Detailed Documentation\n'
     '======================\n'
     + '\n' +
-    read('alm', 'solrindex', 'README.txt')
+    read('alm', 'solrindex', 'README.rst')
     + '\n' +
-    read('CHANGES.txt')
+    read('CHANGES.rst')
     + '\n')
 
 here = os.path.abspath(os.path.normpath(os.path.dirname(__file__)))
