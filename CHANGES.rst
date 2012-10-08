@@ -4,6 +4,9 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Plone 4.1 compatibility.
+  [timo]
+
 - Give the SolrIndex a meta_type 'SolrIndex' and register
   ATSimpleStringCriterion for it, otherwise Collections cannot add
   SearchableText criteria.

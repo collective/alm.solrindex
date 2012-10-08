@@ -4,6 +4,7 @@
     xmlns:five="http://namespaces.zope.org/five"
     >
 
+<include package="Products.CMFCore" />
 
 <!-- GenericSetup integration -->
 <include file="profiles.zcml" />

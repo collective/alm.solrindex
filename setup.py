@@ -37,7 +37,7 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'License :: OSI Approved :: GNU General Public License (GPL)',
-        ],
+    ],
     keywords='zope zcatalog solr plone',
     author='Six Feet Up, Inc.',
     author_email='info@sixfeetup.com',
@@ -48,6 +48,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'setuptools',
+        'Products.CMFPlone',
         #'solrpy',  # we have a private copy until solrpy fixes some bugs
     ],
     tests_require=tests_require,
@@ -60,4 +61,4 @@ setup(
     [console_scripts]
     waituri = alm.solrindex.scripts.waituri:main
     """,
-    )
+)
