@@ -4,6 +4,9 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Add missing elementtree import
+  [saily]
+
 - Plone 4.1 compatibility.
   [timo]
 
