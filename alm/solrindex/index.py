@@ -533,7 +533,7 @@ def force_unicode(s, encoding='utf-8', errors='strict'):
        # working unicode method. Try to handle this without raising a
        # further exception by individually forcing the exception args
        # to unicode.
-       s = ' '.join([force_unicode(arg, encoding, errors) for arg in s])
+       s = ' '.join([force_unicode(arg, encoding, 'replace') for arg in s])
 
     return s
 
