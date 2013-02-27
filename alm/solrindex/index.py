@@ -346,6 +346,7 @@ class SolrIndex(PropertyManager, SimpleItem):
                    log.debug("Creating new custom brain class, hkey: '%s'",
                              hkey)
                else:
+                   catalog._v_brains.highlighting = response.highlighting
                    log.debug("Using existing custom brain class, hkey: '%s'",
                              hkey)
             else:

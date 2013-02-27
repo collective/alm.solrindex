@@ -4,6 +4,10 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Fix stale cached highlighting information that 
+  lead to in inconsistent results.
+  [nrb]
+
 - Add missing elementtree import
   [saily]
 
