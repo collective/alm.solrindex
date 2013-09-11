@@ -12,7 +12,10 @@ from OFS.SimpleItem import SimpleItem
 from Products.PluginIndexes.common.util import parseIndexRequest
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from transaction.interfaces import IDataManager
-from zope.app.component.hooks import getSite
+try:
+    from zope.app.component.hooks import getSite
+except ImportError:
+    from zope.component.hooks import getSite
 from zope.component import queryAdapter
 from zope.interface import implements
 
