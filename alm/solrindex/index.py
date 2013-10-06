@@ -157,6 +157,13 @@ class SolrIndex(PropertyManager, SimpleItem):
         names = [field.name for field in cm.schema.fields]
         return names
 
+    def getIndexQueryNames(self):
+        """Return a list of available indexes for the ZCatalog query
+        plan. This gets around an issue where using `solr_params` or
+        an index not in the actual catalog results in an invalid query.
+        """
+        return self.getIndexSourceNames() + ['solr_params']
+
     def getEntryForObject(self, documentId, default=None):
         """Return the information stored for documentId"""
         if disable_solr:
