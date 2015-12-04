@@ -101,6 +101,9 @@ Changelog
   before getting sent to field handlers.
   [davisagli]
 
+- Implement getIndexQueryNames which is now part of IPluggableIndex.
+  [davisagli]
+
 
 1.1.1 (2010-11-04)
 ------------------

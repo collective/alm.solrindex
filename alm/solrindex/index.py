@@ -161,10 +161,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         """Get a sequence of query parameter names to which this index applies."""
         if disable_solr:
             return []
-
-        cm = self.connection_manager
-        names = [field.name for field in cm.schema.fields]
-        return names
+        return (self.id,)
 
     def getEntryForObject(self, documentId, default=None):
         """Return the information stored for documentId"""
