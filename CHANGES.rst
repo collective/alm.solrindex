@@ -4,54 +4,29 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
-- Fix stale cached highlighting information that 
-  lead to in inconsistent results.
-  [nrb]
-
-- Add missing elementtree import
-  [saily]
-
-- Plone 4.1 compatibility.
-  [timo]
-
-- Give the SolrIndex a meta_type 'SolrIndex' and register
-  ATSimpleStringCriterion for it, otherwise Collections cannot add
-  SearchableText criteria.
-  [maurits]
-
-- Add uninstall profile, restoring the default Plone indizes.
-  [thet]
-
-- Handle empty ``dismax`` queries since a ``*:*`` value for ``q`` is not
-  interpreted for the ``dismax`` query handler and returns no results
-  rather than all results.
-  [claytron]
-
-- Update test setup so that it is testing against Solr 1.4
-  [claytron]
-
-- Extended ZCTextIndex support when a dictionary is passed in as a field search.
+- Fix typo in solrpycore.
   [davidblewett]
 
-- Improved unicode handling to correctly handle dictionaries passed in as a field search,
-  in `SolrIndex._decode_param`.
-  [davidblewett]
+- Thanks to: "Schorr, Dr. Thomas" <thomas.schorr@haufe.de> for the following
+  encoding fixes, refs ticket #1:
 
-- Highlighting is not activated by default because there can be severe performance issues.
-  Pass 'highlight' parameter in solr_params to force it,
-  and pass 'queried' as 'highlight' value to force highlight on queried fields only.
-  [thomasdesvenain]
+  - Added a `expected_encodings` property to `SolrIndex` that lists the encodings
+    to expect text in; each is tried in turn to decode each parameter sent to
+    Solr. If none succeeds in decoding the text, we fall back to UTF8 and replace
+    failing characters.
+    http://wiki.apache.org/solr/FAQ#Why_don.27t_International_Characters_Work.3F
+    [davidblewett]
 
-- Search using ZCTextIndex '*' key character works with alm.solrindex.
-  Makes livesearch works with solrindex as SearchableText index.
-  [thomasdesvenain]
+  - Added `_encode_param` method to `SolrIndex` to encode a given string to UTF8.
+    [davidblewett]
 
-- Quick Plone 4 compatibility fixes
-  [thomasdesvenain]
+  - Modified `SolrIndex`'s '_apply_index` to send all parameters through the
+    `_encode_param` method.
+    [davidblewett]
 
-- Fixed : IIBTree needs integer keys
-  http://plone.org/products/alm.solrindex/issues/3
-  [thomasdesvenain]
+  - Added a `test__apply_index_with_unicode` to ensure unicode queries are
+    handled correctly.
+    [davidblewett]
 
 - Initial highlighting support:
 
@@ -64,30 +39,63 @@ Changelog
 
   [davidblewett]
 
-- Thanks to: "Schorr, Dr. Thomas" <thomas.schorr@haufe.de> for the following
-  encoding fixes, refs ticket #1.
+- Fixed : IIBTree needs integer keys
+  http://plone.org/products/alm.solrindex/issues/3
+  [thomasdesvenain]
+
+- Quick Plone 4 compatibility fixes
+  [thomasdesvenain]
+
+- Search using ZCTextIndex '*' key character works with alm.solrindex.
+  Makes livesearch works with solrindex as SearchableText index.
+  [thomasdesvenain]
+
+- Highlighting is not activated by default because there can be severe performance issues.
+  Pass 'highlight' parameter in solr_params to force it,
+  and pass 'queried' as 'highlight' value to force highlight on queried fields only.
+  [thomasdesvenain]
+
+- Improved unicode handling to correctly handle dictionaries passed in as a field search,
+  in `SolrIndex._decode_param`.
   [davidblewett]
 
-- Added a `expected_encodings` property to `SolrIndex` that lists the encodings
-  to expect text in; each is tried in turn to decode each parameter sent to
-  Solr. If none succeeds in decoding the text, we fall back to UTF8 and replace
-  failing characters.
-  http://wiki.apache.org/solr/FAQ#Why_don.27t_International_Characters_Work.3F
+- Extended ZCTextIndex support when a dictionary is passed in as a field search.
   [davidblewett]
 
-- Added `_encode_param` method to `SolrIndex` to encode a given string to UTF8.
-  [davidblewett]
+- Update test setup so that it is testing against Solr 1.4
+  [claytron]
 
-- Modified `SolrIndex`'s '_apply_index` to send all parameters through the
-  `_encode_param` method.
-  [davidblewett]
+- Handle empty ``dismax`` queries since a ``*:*`` value for ``q`` is not
+  interpreted for the ``dismax`` query handler and returns no results
+  rather than all results.
+  [claytron]
 
-- Added a `test__apply_index_with_unicode` to ensure unicode queries are
-  handled correctly.
-  [davidblewett]
+- Add uninstall profile, restoring the default Plone indizes.
+  [thet]
 
-- Fix typo in solrpycore.
-  [davidblewett]
+- Give the SolrIndex a meta_type 'SolrIndex' and register
+  ATSimpleStringCriterion for it, otherwise Collections cannot add
+  SearchableText criteria.
+  [maurits]
+
+- Ensure that only one 'q' parameter is sent to Solr.
+  [claytron]
+
+- Plone 4.1 compatibility.
+  [timo]
+
+- Add missing elementtree import
+  [saily]
+
+- Fix stale cached highlighting information that 
+  lead to in inconsistent results.
+  [nrb]
+
+- Plone 4.3 compatibility.
+  [cguardia]
+
+- Add support for solr.TrieDateField
+  [mjpieters]
 
 
 1.1.1 (2010-11-04)
