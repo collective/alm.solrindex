@@ -1,4 +1,3 @@
-
 import unittest
 
 
@@ -250,13 +249,3 @@ class TextFieldHandlerTests(unittest.TestCase):
 
 class DummyField:
     name = 'dummyfield'
-
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(SolrEscapeTests))
-    suite.addTest(unittest.makeSuite(DefaultFieldHandlerTests))
-    suite.addTest(unittest.makeSuite(BoolFieldHandlerTests))
-    suite.addTest(unittest.makeSuite(DateFieldHandlerTests))
-    suite.addTest(unittest.makeSuite(TextFieldHandlerTests))
-    return suite

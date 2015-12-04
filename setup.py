@@ -23,7 +23,7 @@ here = os.path.abspath(os.path.normpath(os.path.dirname(__file__)))
 version_txt = os.path.join(here, 'alm/solrindex/version.txt')
 alm_solrindex_version = open(version_txt).read().strip()
 
-tests_require = ['zope.testing']
+tests_require = ['Products.PloneTestCase']
 
 setup(
     name='alm.solrindex',

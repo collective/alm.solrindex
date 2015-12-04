@@ -1,4 +1,3 @@
-
 import unittest
 from zope.testing.cleanup import cleanUp
 
@@ -128,10 +127,10 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(dict(result.items()), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
-                'q': ['stuff', 'f1:somequery'],
-                'fields': 'docid',
-                'spellcheck': 'true',
-                }])
+            'q': 'stuff f1:somequery',
+            'fields': 'docid',
+            'spellcheck': 'true',
+            }])
 
     def test__apply_index_dismax_no_q(self):
         self._registerConnectionManager()
@@ -164,10 +163,10 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(dict(result.items()), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
-                'q': ['stuff', 'f1:somequery'],
-                'fields': 'docid',
-                'defType': 'dismax',
-                }])
+            'q': 'stuff f1:somequery',
+            'fields': 'docid',
+            'defType': 'dismax',
+            }])
 
     def test__apply_index_with_callback(self):
         self._registerConnectionManager()
@@ -422,10 +421,3 @@ class DummyIndexableObject:
 
     def f2(self):
         return 'b'
-
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(SolrIndexTests))
-    suite.addTest(unittest.makeSuite(SolrConnectionManagerTests))
-    return suite
