@@ -4,6 +4,10 @@ Changelog
 1.2 (xxxx-xx-xx)
 ----------------
 
+- Fix decoding of query requests so that lists are not stringified
+  before getting sent to field handlers.
+  [davisagli]
+
 - Fix stale cached highlighting information that 
   lead to in inconsistent results.
   [nrb]
