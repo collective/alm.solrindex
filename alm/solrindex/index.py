@@ -161,10 +161,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         """Get a sequence of query parameter names to which this index applies."""
         if disable_solr:
             return []
-
-        cm = self.connection_manager
-        names = [field.name for field in cm.schema.fields]
-        return names
+        return (self.id,)
 
     def getEntryForObject(self, documentId, default=None):
         """Return the information stored for documentId"""
@@ -396,28 +393,25 @@ class SolrIndex(PropertyManager, SimpleItem):
         return decoded_val.encode('utf-8', 'replace')
 
     def _decode_param(self, val):
-        decoded_val = None
-        for encoding in self.expected_encodings:
-            try:
-                if isinstance(val, dict):
-                    decoded_val = dict([(k, force_unicode(v))
-                                        for k, v in val.items()])
-                else:
+        if isinstance(val, dict):
+            return {k: self._decode_param(v) for k, v in val.items()}
+        elif isinstance(val, list):
+            return [self._decode_param(v) for v in val]
+        elif isinstance(val, basestring):
+            decoded_val = None
+            for encoding in self.expected_encodings:
+                try:
                     decoded_val = force_unicode(val, encoding)
-            except UnicodeDecodeError:
-                continue
-        if decoded_val is None:
-            # Our escape hatch; if none of the expected encodings
-            # work, we fall back to UTF8 and replace characters
-            if isinstance(val, dict):
-                decoded_val = dict([(k, force_unicode(v,
-                                                      encoding='utf-8',
-                                                      errors='replace'))
-                                    for k, v in val.items()])
-            else:
-                decoded_val = force_unicode(val, encoding='utf-8',
-                                            errors='replace')
-        return decoded_val
+                except UnicodeDecodeError:
+                    continue
+            if decoded_val is None:
+                # Our escape hatch; if none of the expected encodings
+                # work, we fall back to UTF8 and replace characters
+                decoded_val = force_unicode(
+                    val, encoding='utf-8', errors='replace')
+            return decoded_val
+        else:
+            return val
 
     ## The ZCatalog Index management screen uses these methods ##
 

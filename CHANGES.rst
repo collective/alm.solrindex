@@ -97,6 +97,13 @@ Changelog
 - Add support for solr.TrieDateField
   [mjpieters]
 
+- Fix decoding of query requests so that lists are not stringified
+  before getting sent to field handlers.
+  [davisagli]
+
+- Implement getIndexQueryNames which is now part of IPluggableIndex.
+  [davisagli]
+
 
 1.1.1 (2010-11-04)
 ------------------
