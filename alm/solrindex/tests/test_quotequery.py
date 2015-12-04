@@ -154,9 +154,3 @@ class QuoteQueryTests(unittest.TestCase):
         quote = self._callFUT
         self.assertEqual(quote('ham&eggs'), 'ham&eggs')
         self.assertEqual(quote('ls -l | less'), '(ls -l | less)')
-
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(QuoteQueryTests))
-    return suite

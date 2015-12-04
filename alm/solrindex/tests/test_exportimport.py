@@ -1,9 +1,7 @@
-
-import unittest
-
 from Products.GenericSetup.testing import NodeAdapterTestCase
 from Products.GenericSetup.testing import ExportImportZCMLLayer
 from Products.Five import zcml
+import unittest
 
 _SOLR_URI = 'http://localhost:8988/solr'
 
@@ -28,7 +26,7 @@ class SolrExportImportZCMLLayer(ExportImportZCMLLayer):
         zcml.load_config('configure.zcml', alm.solrindex)
 
 
-class SolrIndexNodeAdapterTests(NodeAdapterTestCase):
+class SolrIndexNodeAdapterTests(NodeAdapterTestCase, unittest.TestCase):
 
     layer = SolrExportImportZCMLLayer
 
@@ -38,16 +36,5 @@ class SolrIndexNodeAdapterTests(NodeAdapterTestCase):
 
     def setUp(self):
         from alm.solrindex.index import SolrIndex
-        NodeAdapterTestCase.setUp(self)
         self._obj = SolrIndex('Solr', _SOLR_URI)
         self._XML = _SOLRINDEX_XML
-
-
-def test_suite():
-    return unittest.TestSuite((
-        unittest.makeSuite(SolrIndexNodeAdapterTests),
-        ))
-
-if __name__ == '__main__':
-    from Products.GenericSetup.testing import run
-    run(test_suite())

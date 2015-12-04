@@ -1,4 +1,3 @@
-
 import unittest
 from zope.testing.cleanup import cleanUp
 
@@ -422,10 +421,3 @@ class DummyIndexableObject:
 
     def f2(self):
         return 'b'
-
-
-def test_suite():
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(SolrIndexTests))
-    suite.addTest(unittest.makeSuite(SolrConnectionManagerTests))
-    return suite
