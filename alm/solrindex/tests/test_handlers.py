@@ -211,6 +211,30 @@ class DateFieldHandlerTests(unittest.TestCase):
         handler = self._makeOne()
         self.assertRaises(TypeError, handler.convert, object())
 
+    def test_parse_query_simple(self):
+        from datetime import date
+        field = DummyField()
+        handler = self._makeOne()
+        field_query = date(2015, 12, 4)
+        query = handler.parse_query(field, field_query)
+        self.assertEqual(query, {'fq': r'dummyfield:"2015\-12\-04T00\:00\:00.000Z"'})
+
+    def test_parse_query_range(self):
+        from datetime import date
+        field = DummyField()
+        handler = self._makeOne()
+
+        query = handler.parse_query(field, {'query': date(2015, 12, 4), 'range': 'min'})
+        self.assertEqual(query, {'fq': r'dummyfield:[2015\-12\-04T00\:00\:00.000Z TO *]'})
+
+        query = handler.parse_query(field, {'query': date(2015, 12, 4), 'range': 'max'})
+        self.assertEqual(query, {'fq': r'dummyfield:[* TO 2015\-12\-04T00\:00\:00.000Z]'})
+
+        query = handler.parse_query(field, {
+            'query': [date(2015, 12, 4), date(2015, 12, 5)], 'range': 'min:max'})
+        self.assertEqual(query, {
+            'fq': r'dummyfield:[2015\-12\-04T00\:00\:00.000Z TO 2015\-12\-05T00\:00\:00.000Z]'})
+
 
 class TextFieldHandlerTests(unittest.TestCase):
 
