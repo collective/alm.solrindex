@@ -83,6 +83,29 @@ class BoolFieldHandler(DefaultFieldHandler):
 
 class DateFieldHandler(DefaultFieldHandler):
 
+    def parse_query(self, field, field_query):
+        name = field.name
+        request = {name: field_query}
+        record = parseIndexRequest(request, name, ('query', 'range'))
+        if not record.keys:
+            return None
+
+        query_range = record.get('range', None)
+        if query_range is None:
+            return super(DateFieldHandler, self).parse_query(field, field_query)
+        elif query_range == 'min':
+            min_query = self.convert_one(min(record.keys))
+            return {'fq': u'%s:[%s TO *]' % (name, solr_escape(min_query))}
+        elif query_range == 'max':
+            max_query = self.convert_one(max(record.keys))
+            return {'fq': u'%s:[* TO %s]' % (name, solr_escape(max_query))}
+        elif query_range == 'min:max':
+            min_query = self.convert_one(min(record.keys))
+            max_query = self.convert_one(max(record.keys))
+            return {'fq': u'%s:[%s TO %s]' % (name, solr_escape(min_query), solr_escape(max_query))}
+        else:
+            raise AssertionError("Invalid range: %s" % range)
+
     def convert_one(self, value):
         if isinstance(value, DateTime):
             t_tup = value.toZone('UTC').parts()
@@ -118,7 +141,6 @@ class TextFieldHandler(DefaultFieldHandler):
 
         return {'q': u'+%s:%s' % (name, quote_query(query_str))}
 
-
     def convert(self, data):
         if data is None:
             return ()
@@ -128,5 +150,3 @@ class TextFieldHandler(DefaultFieldHandler):
             data_seq = [data]
         res = [self.convert_one(value) for value in data_seq]
         return [" ".join(res)]
-
-

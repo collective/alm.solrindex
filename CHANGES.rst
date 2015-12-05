@@ -104,6 +104,9 @@ Changelog
 - Implement getIndexQueryNames which is now part of IPluggableIndex.
   [davisagli]
 
+- Add support for range queries to the DateFieldHandler.
+  [davisagli]
+
 
 1.1.1 (2010-11-04)
 ------------------
