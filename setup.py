@@ -49,7 +49,6 @@ setup(
     install_requires=[
         'setuptools',
         'Products.CMFPlone',
-        'elementtree',
         #'solrpy',  # we have a private copy until solrpy fixes some bugs
     ],
     tests_require=tests_require,
