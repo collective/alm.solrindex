@@ -4,7 +4,11 @@
 from alm.solrindex.interfaces import ISolrField
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.interfaces import ISolrSchema
-from elementtree.ElementTree import parse
+try:
+    from elementtree.ElementTree import parse
+except ImportError:
+    from lxml.etree import parse
+
 from zope.component import getUtility
 from zope.component import queryUtility
 from zope.interface import implements
