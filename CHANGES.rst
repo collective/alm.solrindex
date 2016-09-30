@@ -107,6 +107,9 @@ Changelog
 - Add support for range queries to the DateFieldHandler.
   [davisagli]
 
+- Don't turn wildcard queries into fuzzy queries.
+  [davisagli]
+
 
 1.1.1 (2010-11-04)
 ------------------
