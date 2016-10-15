@@ -23,8 +23,7 @@ Useful Links
 ============
 
 - Solr: http://lucene.apache.org/solr/
-- pypi: http://pypi.python.org/pypi/alm.solrindex
-- Plone: http://plone.org/products/alm.solrindex
+- PyPI: http://pypi.python.org/pypi/alm.solrindex
 - issue tracker: https://github.com/collective/alm.solrindex/issues
 - git repository: https://github.com/collective/alm.solrindex
 
