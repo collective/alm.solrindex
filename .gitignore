@@ -2,6 +2,7 @@
 /eggs
 /fake-eggs
 /bin
+/buildout-cache
 /parts
 /downloads
 /var
