@@ -23,8 +23,6 @@ here = os.path.abspath(os.path.normpath(os.path.dirname(__file__)))
 version_txt = os.path.join(here, 'alm/solrindex/version.txt')
 alm_solrindex_version = open(version_txt).read().strip()
 
-tests_require = ['Products.PloneTestCase']
-
 setup(
     name='alm.solrindex',
     version=alm_solrindex_version,
@@ -51,8 +49,6 @@ setup(
         'Products.CMFPlone',
         #'solrpy',  # we have a private copy until solrpy fixes some bugs
     ],
-    tests_require=tests_require,
-    extras_require=dict(tests=tests_require),
     test_suite='alm.solrindex.tests.test_suite',
     entry_points="""\
     [z3c.autoinclude.plugin]
