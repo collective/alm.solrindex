@@ -1,8 +1,8 @@
 Changelog
 =========
 
-1.2 (xxxx-xx-xx)
-----------------
+1.2.0 (2016-10-15)
+------------------
 
 - Fix typo in solrpycore.
   [davidblewett]
