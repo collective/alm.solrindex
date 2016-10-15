@@ -7,7 +7,7 @@ Introduction
    :alt: SolrIndex
    :align: left
 
-SolrIndex is a product for Plone/Zope that provides enhanced searching capabilities by leveraging Solr, the popular open source enterprise search platform from the Apache Lucene project.
+SolrIndex is a product for Plone/Zope that provides enhanced searching capabilities by leveraging Solr, the popular open source enterprise search platform from the Apache Lucene project.  It is compatible with Plone 4 and Plone 5.
 
 Out of the box, SolrIndex brings in more relevant search results by replacing Plone's default full-text indexing with Solr-based search features, and including the ability to assign weights to certain fields.
 
@@ -32,5 +32,4 @@ Useful Links
 Special Thanks
 ==============
 
-Six Feet Up would especially like to thank Shane Hathaway for his key contribution to  SolrIndex.
-
+Six Feet Up would especially like to thank Shane Hathaway for his key contribution to SolrIndex.

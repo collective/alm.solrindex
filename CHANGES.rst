@@ -110,6 +110,9 @@ Changelog
 - Don't turn wildcard queries into fuzzy queries.
   [davisagli]
 
+- Confirm compatibility with Plone 5
+  [witekdev, davisagli]
+
 
 1.1.1 (2010-11-04)
 ------------------
