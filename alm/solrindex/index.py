@@ -3,8 +3,6 @@ import logging
 import os
 import transaction
 
-import Globals  # import Zope 2 dependencies in order
-
 from Acquisition import aq_parent
 from BTrees.IIBTree import IIBTree, IISet
 from OFS.PropertyManager import PropertyManager
@@ -525,7 +523,7 @@ def force_unicode(s, encoding='utf-8', errors='strict'):
             # errors), so that if s is a SafeString, it ends up being a
             # SafeUnicode at the end.
             s = s.decode(encoding, errors)
-    except UnicodeDecodeError, e:
+    except UnicodeDecodeError as e:
        # If we get to here, the caller has passed in an Exception
        # subclass populated with non-ASCII bytestring data without a
        # working unicode method. Try to handle this without raising a

@@ -1,6 +1,4 @@
 
-import Globals  # import Zope 2 dependencies in order
-
 from zope.interface import Attribute
 from zope.interface import Interface
 from Products.PluginIndexes.interfaces import IPluggableIndex

@@ -1,6 +1,6 @@
 from Products.GenericSetup.testing import NodeAdapterTestCase
 from Products.GenericSetup.testing import ExportImportZCMLLayer
-from Products.Five import zcml
+from Zope2.App import zcml
 import unittest
 
 _SOLR_URI = 'http://localhost:8988/solr'

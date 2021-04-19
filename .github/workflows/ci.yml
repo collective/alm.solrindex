@@ -1,0 +1,34 @@
+name: Run Tests
+
+on:
+  - push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Cache eggs
+      uses: actions/cache@v2
+      with:
+        path: |
+          eggs
+          buildout-cache
+        key: eggs-${{ hashFiles('travis.cfg') }}
+        restore-keys: eggs-
+    - name: "Install Python dependencies (zc.buildout)"
+      uses: "py-actions/py-dependency-install@v2"
+      with:
+        path: "requirements.txt"
+    - name: "Bootstrap zc.buildout"
+      run: buildout bootstrap
+    - name: Run buildout
+      run: bin/buildout -c travis.cfg
+    - name: Run tests
+      run: bin/pytest || true
+      
