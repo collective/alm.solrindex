@@ -11,15 +11,17 @@ except ImportError:
 
 from zope.component import getUtility
 from zope.component import queryUtility
-from zope.interface import implements
+from zope.interface import implementer
 import logging
-import urllib2
+from urllib.request import urlopen
+from urllib.error import URLError
+
 
 log = logging.getLogger(__name__)
 
 
+@implementer(ISolrSchema)
 class SolrSchema(object):
-    implements(ISolrSchema)
 
     uniqueKey = None
     defaultSearchField = None
@@ -41,8 +43,8 @@ class SolrSchema(object):
             uri = uri % solr_uri
             log.debug('getting schema from %s', uri)
             try:
-                f = urllib2.urlopen(uri)
-            except urllib2.URLError:
+                f = urlopen(uri)
+            except URLError:
                 if i < len(schema_uris) - 1:
                     # try the next URI
                     continue
@@ -70,8 +72,8 @@ class SolrSchema(object):
             self.fields.append(SolrField(e, t))
 
 
+@implementer(ISolrField)
 class SolrField(object):
-    implements(ISolrField)
 
     _boolean_attrs = (
         'indexed', 'stored', 'required', 'multiValued',

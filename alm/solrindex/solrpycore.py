@@ -281,7 +281,10 @@ Enter a raw query, without processing the returned HTML contents.
 """
 import sys
 import socket
-import httplib
+try:
+    import httplib  # Python 2
+except ImportError:
+    from http import client as httplib
 import urlparse
 import codecs
 import urllib

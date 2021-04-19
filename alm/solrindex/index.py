@@ -15,7 +15,7 @@ try:
 except ImportError:
     from zope.component.hooks import getSite
 from zope.component import queryAdapter
-from zope.interface import implements
+from zope.interface import implementer
 
 try:
     from Products.CMFCore.utils import getToolByName
@@ -52,9 +52,9 @@ disable_solr = os.environ.get('DISABLE_SOLR')
 log = logging.getLogger(__name__)
 
 
+@implementer(ISolrIndex)
 class SolrIndex(PropertyManager, SimpleItem):
 
-    implements(ISolrIndex)
 
     # Be careful what meta_type you set here, otherwise there will be
     # no available criteria (like ATSimpleStringCriterion) available
@@ -436,8 +436,8 @@ class NoRollbackSavepoint:
         pass
 
 
+@implementer(ISolrConnectionManager, IDataManager)
 class SolrConnectionManager(object):
-    implements(ISolrConnectionManager, IDataManager)
 
     def __init__(self, solr_index, connection_factory=SolrConnection):
         self.solr_uri = solr_index.solr_uri
