@@ -2,7 +2,7 @@
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.quotequery import quote_query
 from Products.PluginIndexes.common.util import parseIndexRequest
-from zope.interface import implements
+from zope.interface import implementer
 import re
 import time
 from datetime import date, datetime
@@ -19,8 +19,8 @@ def solr_escape(query):
     return _escape_chars.sub(r'\\\1', query)
 
 
+@implementer(ISolrFieldHandler)
 class DefaultFieldHandler(object):
-    implements(ISolrFieldHandler)
 
     operators = ('and', 'or')
     default_operator = 'or'
@@ -61,11 +61,7 @@ class DefaultFieldHandler(object):
         return res
 
     def convert_one(self, value):
-        if isinstance(value, str):
-            s = value.decode('utf-8')
-        else:
-            s = str(value)
-        return invalid_xml_re.sub('', s)
+        return invalid_xml_re.sub('', str(value))
 
 
 class BoolFieldHandler(DefaultFieldHandler):
