@@ -279,13 +279,12 @@ Enter a raw query, without processing the returned HTML contents.
     >>> print c.raw_query(q='id:[* TO *]', wt='python', rows='10')
 
 """
+from future.standard_library import install_aliases
+install_aliases()
+
 import sys
 import socket
-try:
-    import http.client  # Python 2
-except ImportError:
-    from http import client as httplib
-import urllib.parse
+import http.client
 import codecs
 import urllib.request, urllib.parse, urllib.error
 import datetime
