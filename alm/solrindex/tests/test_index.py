@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 from zope.testing.cleanup import cleanUp
 
