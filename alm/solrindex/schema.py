@@ -1,12 +1,10 @@
-
 """Parser of a Solr schema.xml"""
-
 from alm.solrindex.interfaces import ISolrField
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.interfaces import ISolrSchema
 try:
     from elementtree.ElementTree import parse
-except ImportError:
+except (ImportError, AttributeError):
     from lxml.etree import parse
 
 from zope.component import getUtility
