@@ -282,14 +282,14 @@ Enter a raw query, without processing the returned HTML contents.
 import sys
 import socket
 try:
-    import httplib  # Python 2
+    import http.client  # Python 2
 except ImportError:
     from http import client as httplib
-import urlparse
+import urllib.parse
 import codecs
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import datetime
-from StringIO import StringIO
+from io import StringIO
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 from xml.sax.saxutils import escape, quoteattr
@@ -360,7 +360,7 @@ class SolrConnection:
 
         """
 
-        self.scheme, self.host, self.path = urlparse.urlparse(url, 'http')[:3]
+        self.scheme, self.host, self.path = urllib.parse.urlparse(url, 'http')[:3]
         self.url = url
 
         assert self.scheme in ('http', 'https')
@@ -377,10 +377,10 @@ class SolrConnection:
             kwargs['timeout'] = self.timeout
 
         if self.scheme == 'https':
-            self.conn = httplib.HTTPSConnection(self.host,
+            self.conn = http.client.HTTPSConnection(self.host,
                    key_file=ssl_key, cert_file=ssl_cert, **kwargs)
         else:
-            self.conn = httplib.HTTPConnection(self.host, **kwargs)
+            self.conn = http.client.HTTPConnection(self.host, **kwargs)
 
         # this is int, not bool!
         self.batch_cnt = 0
@@ -451,19 +451,19 @@ class SolrConnection:
 
         # Clean up optional parameters to match SOLR spec.
         params = dict([(key.replace('_', '.'), value)
-                      for key, value in params.items()])
+                      for key, value in list(params.items())])
 
         if highlight:
             params['hl'] = 'true'
             if not isinstance(highlight, (bool, int, float)):
-                if not isinstance(highlight, basestring):
+                if not isinstance(highlight, str):
                     highlight = ",".join(highlight)
                 params['hl.fl'] = highlight
             else:
                 if not fields:
                     raise ValueError(
                         "highlight is True and no fields were given")
-                elif isinstance(fields, basestring):
+                elif isinstance(fields, str):
                     params['hl.fl'] = [fields]
                 else:
                     params['hl.fl'] = ",".join(fields)
@@ -472,7 +472,7 @@ class SolrConnection:
             params['q'] = q
 
         if fields:
-            if not isinstance(fields, basestring):
+            if not isinstance(fields, str):
                 fields = ",".join(fields)
         if not fields:
             fields = '*'
@@ -480,7 +480,7 @@ class SolrConnection:
         if sort:
             if not sort_order or sort_order not in ("asc", "desc"):
                 raise ValueError("sort_order must be 'asc' or 'desc'")
-            if not isinstance(sort, basestring):
+            if not isinstance(sort, str):
                 sort = ",".join(sort)
             params['sort'] = "%s %s" % (sort, sort_order)
 
@@ -491,7 +491,7 @@ class SolrConnection:
         params['version'] = self.response_version
         params['wt'] = 'standard'
 
-        request = urllib.urlencode(params, doseq=True)
+        request = urllib.parse.urlencode(params, doseq=True)
 
         try:
             rsp = self._post(self.path + '/select',
@@ -557,7 +557,7 @@ class SolrConnection:
         """
         Delete a specific document by id.
         """
-        xstr = u'<delete><id>%s</id></delete>' % escape(unicode(id))
+        xstr = '<delete><id>%s</id></delete>' % escape(str(id))
         return self._update(xstr)
 
     def delete_many(self, ids):
@@ -570,7 +570,7 @@ class SolrConnection:
         """
         Delete all documents returned by a query.
         """
-        xstr = u'<delete><query>%s</query></delete>' % escape(query)
+        xstr = '<delete><query>%s</query></delete>' % escape(query)
         return self._update(xstr)
 
     def add(self, _commit=False, **fields):
@@ -581,9 +581,9 @@ class SolrConnection:
         Example:
             connection.add(id="mydoc", author="Me")
         """
-        lst = [u'<add>']
+        lst = ['<add>']
         self.__add(lst, fields)
-        lst.append(u'</add>')
+        lst.append('</add>')
         xstr = ''.join(lst)
         if not _commit:
             return self._update(xstr)
@@ -598,10 +598,10 @@ class SolrConnection:
         docs -- a list of dicts, where each dict is a document to add
             to SOLR.
         """
-        lst = [u'<add>']
+        lst = ['<add>']
         for doc in docs:
             self.__add(lst, doc)
-        lst.append(u'</add>')
+        lst.append('</add>')
         xstr = ''.join(lst)
         if not _commit:
             return self._update(xstr)
@@ -623,9 +623,9 @@ class SolrConnection:
             options = ''
 
         if _optimize:
-            xstr = u'<optimize %s/>' % options
+            xstr = '<optimize %s/>' % options
         else:
-            xstr = u'<commit %s/>' % options
+            xstr = '<commit %s/>' % options
 
         return self._update(xstr)
 
@@ -646,9 +646,9 @@ class SolrConnection:
 
         # Clean up optional parameters to match SOLR spec.
         params = dict([(key.replace('_', '.'), value)
-                       for key, value in params.items()])
+                       for key, value in list(params.items())])
 
-        request = urllib.urlencode(params, doseq=True)
+        request = urllib.parse.urlencode(params, doseq=True)
 
         try:
             rsp = self._post(self.path + '/select',
@@ -688,8 +688,8 @@ class SolrConnection:
         return data
 
     def __add(self, lst, fields):
-        lst.append(u'<doc>')
-        for field, value in fields.items():
+        lst.append('<doc>')
+        for field, value in list(fields.items()):
             # Handle multi-valued fields if values
             # is passed in as a list/tuple
             if not isinstance(value, (list, tuple)):
@@ -713,7 +713,7 @@ class SolrConnection:
 
                 lst.append('<field name=%s>%s</field>' % (
                     (quoteattr(field),
-                    escape(unicode(value)))))
+                    escape(str(value)))))
         lst.append('</doc>')
 
     def __repr__(self):
@@ -739,8 +739,8 @@ class SolrConnection:
                 self.conn.request('POST', url, body.encode('UTF-8'), headers)
                 return check_response_status(self.conn.getresponse())
             except (socket.error,
-                    httplib.ImproperConnectionState,
-                    httplib.BadStatusLine):
+                    http.client.ImproperConnectionState,
+                    http.client.BadStatusLine):
                     # We include BadStatusLine as they are spurious
                     # and may randomly happen on an otherwise fine
                     # SOLR connection (though not often)
@@ -890,7 +890,7 @@ class ResponseContentHandler(ContentHandler):
             node.final = None
 
         elif name == 'long':
-            node.final = long(value.strip())
+            node.final = int(value.strip())
 
         elif name == 'bool':
             node.final = value.strip().lower().startswith('t')
@@ -937,7 +937,7 @@ class ResponseContentHandler(ContentHandler):
         else:
             raise SolrException("Unknown tag: %s" % name)
 
-        for attr, val in node.attrs.items():
+        for attr, val in list(node.attrs.items()):
             if attr != 'name':
                 setattr(node.final, attr, val)
 
@@ -969,7 +969,7 @@ class Node(object):
             self.name,
             "".join(self.chars).strip(),
             ' '.join(['%s="%s"' % (attr, val)
-                            for attr, val in self.attrs.items()]))
+                            for attr, val in list(self.attrs.items())]))
 
 
 # ===================================================================

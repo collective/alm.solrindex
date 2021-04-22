@@ -200,9 +200,6 @@ class SolrIndex(PropertyManager, SimpleItem):
             value = getattr(obj, name, None)
             if callable(value):
                 value = value()
-            # Decode all strings using list from `expected_encodings`
-            if isinstance(value, str):
-                value = self._decode_param(value)
             value_list = field.handler.convert(value)
             if value_list:
                 values[name] = value_list
@@ -241,7 +238,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         solr_params = {}
 
         # Get the Solr parameters from the catalog query
-        if request.has_key('solr_params'):
+        if 'solr_params' in request:
             solr_params.update(request['solr_params'])
 
         # Include parameters from field queries
@@ -249,10 +246,10 @@ class SolrIndex(PropertyManager, SimpleItem):
             name = field.name
             if field.stored:
                 stored.append(name)
-            if not request.has_key(name):
+            if name not in request:
                 continue
 
-            field_query = self._decode_param(request[name])
+            field_query = request[name]
             field_params = field.handler.parse_query(field, field_query)
             if field_params:
                 queried.append(name)
@@ -266,7 +263,7 @@ class SolrIndex(PropertyManager, SimpleItem):
                         if not isinstance(v, list):
                             v = [v]
                             solr_params[k] = v
-                        if isinstance(to_add, basestring):
+                        if isinstance(to_add, str):
                             v.append(to_add)
                         else:
                             v.extend(to_add)
@@ -311,13 +308,9 @@ class SolrIndex(PropertyManager, SimpleItem):
         if isinstance(solr_params['q'], list):
             solr_params['q'] = ' '.join(solr_params['q'])
 
-        # Decode all strings using list from `expected_encodings`,
-        # then transcode to UTF-8
-        transcoded_params = self._transcode_params(solr_params)
-
         log.debug("querying: %r", solr_params)
-        response = cm.connection.query(**transcoded_params)
-        if request.has_key('solr_callback'):
+        response = cm.connection.query(**solr_params)
+        if 'solr_callback' in request:
             # Call a function with the Solr response object
             callback = request['solr_callback']
             callback(response)
@@ -357,50 +350,6 @@ class SolrIndex(PropertyManager, SimpleItem):
             result[int(r[uniqueKey])] = int(r.get('score', 0) * 1000)
 
         return result, queried
-
-    def _transcode_params(self, params):
-        transcoded_params = {}
-        for key, val in params.items():
-            enc_val = None
-            if isinstance(val, basestring):
-                enc_val = self._encode_param(val)
-            elif isinstance(val, list):
-                enc_val = []
-                for v in val:
-                    if isinstance(v, basestring):
-                        enc_val.append(self._encode_param(v))
-                    else:
-                        enc_val.append(v)
-            else:
-                enc_val = val
-            transcoded_params[key] = enc_val
-        return transcoded_params
-
-    def _encode_param(self, val):
-        decoded_val = self._decode_param(val)
-        # We don't want to raise a UnicodeEncodeError here
-        return decoded_val.encode('utf-8', 'replace')
-
-    def _decode_param(self, val):
-        if isinstance(val, dict):
-            return {k: self._decode_param(v) for k, v in val.items()}
-        elif isinstance(val, list):
-            return [self._decode_param(v) for v in val]
-        elif isinstance(val, basestring):
-            decoded_val = None
-            for encoding in self.expected_encodings:
-                try:
-                    decoded_val = force_unicode(val, encoding)
-                except UnicodeDecodeError:
-                    continue
-            if decoded_val is None:
-                # Our escape hatch; if none of the expected encodings
-                # work, we fall back to UTF8 and replace characters
-                decoded_val = force_unicode(
-                    val, encoding='utf-8', errors='replace')
-            return decoded_val
-        else:
-            return val
 
     ## The ZCatalog Index management screen uses these methods ##
 
@@ -498,15 +447,15 @@ class SolrConnectionManager(object):
         return NoRollbackSavepoint(self)
 
 def force_unicode(s, encoding='utf-8', errors='strict'):
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         return s
     try:
-        if not isinstance(s, basestring,):
+        if not isinstance(s, str,):
             if hasattr(s, '__unicode__'):
-                s = unicode(s)
+                s = str(s)
             else:
                 try:
-                    s = unicode(str(s), encoding, errors)
+                    s = str(str(s), encoding, errors)
                 except UnicodeEncodeError:
                     if not isinstance(s, Exception):
                         raise
@@ -518,7 +467,7 @@ def force_unicode(s, encoding='utf-8', errors='strict'):
                     # output should be.
                     s = ' '.join([force_unicode(arg, encoding, errors)
                                   for arg in s])
-        elif not isinstance(s, unicode):
+        elif not isinstance(s, str):
             # Note: We use .decode() here, instead of unicode(s, encoding,
             # errors), so that if s is a SafeString, it ends up being a
             # SafeUnicode at the end.
@@ -550,12 +499,12 @@ class HighlightingBrain(AbstractCatalogBrain):
             value.
         """
         highlighting = {}
-        rid = unicode(self.getRID())
+        rid = str(self.getRID())
         brain_highlights = self.highlighting.get(rid, {})
         if fields is None:
-            fields = brain_highlights.keys()
+            fields = list(brain_highlights.keys())
 
-        for fname, fhighlights in brain_highlights.items():
+        for fname, fhighlights in list(brain_highlights.items()):
             if fname not in highlighting:
                 highlighting[fname] = []
             if isinstance(fhighlights, (tuple,list)):
@@ -564,12 +513,12 @@ class HighlightingBrain(AbstractCatalogBrain):
                 highlighting[fname].append(fhighlights)
 
         results = dict([(fname, fhighlights)
-                        for fname, fhighlights in highlighting.items()
+                        for fname, fhighlights in list(highlighting.items())
                             if fname in fields])
 
         if combine_fields:
             combined = []
-            for val in results.values():
+            for val in list(results.values()):
                 combined.extend(val)
             return combined
         else:
@@ -590,6 +539,6 @@ def get_catalog(obj, name=None):
 def get_solr_indexes(catalog):
     # Use getIndex to ensure the object is wrapped correctly
     return [catalog.getIndex(name)
-            for name, idx in catalog.indexes.items()
+            for name, idx in list(catalog.indexes.items())
                 if ISolrIndex.providedBy(idx)]
 

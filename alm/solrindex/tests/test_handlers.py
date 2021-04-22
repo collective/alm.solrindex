@@ -14,11 +14,11 @@ class SolrEscapeTests(unittest.TestCase):
         self.assertEqual(self._callFUT('abc'), 'abc')
 
     def test_unicode(self):
-        self.assertEqual(self._callFUT(u'smile \u30b7'), u'smile \u30b7')
+        self.assertEqual(self._callFUT('smile \u30b7'), 'smile \u30b7')
 
     def test_quotes(self):
-        self.assertEqual(self._callFUT(u'I am "quoted"'),
-            u'I am \\"quoted\\"')
+        self.assertEqual(self._callFUT('I am "quoted"'),
+            'I am \\"quoted\\"')
 
     def test_all_escaped_characters(self):
         s = '\\:?*~"^][}{)(!|&+-'
@@ -51,15 +51,15 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         field_query = 'hello'
         handler = self._makeOne()
         param = handler.parse_query(field, field_query)
-        self.assertEqual(param, {'fq': u'dummyfield:"hello"'})
+        self.assertEqual(param, {'fq': 'dummyfield:"hello"'})
 
     def test_escaped_query(self):
         field = DummyField()
-        field_query = u'Hello "Solr"! \u30b7'
+        field_query = 'Hello "Solr"! \u30b7'
         handler = self._makeOne()
         param = handler.parse_query(field, field_query)
         self.assertEqual(param,
-            {'fq': u'dummyfield:"Hello \\"Solr\\"\\! \u30b7"'})
+            {'fq': 'dummyfield:"Hello \\"Solr\\"\\! \u30b7"'})
 
     def test_query_multiple_default_operator(self):
         field = DummyField()
@@ -67,7 +67,7 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         handler = self._makeOne()
         param = handler.parse_query(field, field_query)
         self.assertEqual(param,
-            {'fq': u'dummyfield:("news" OR "sports" OR "\\"local\\"")'})
+            {'fq': 'dummyfield:("news" OR "sports" OR "\\"local\\"")'})
 
     def test_query_multiple_and_operator(self):
         field = DummyField()
@@ -78,7 +78,7 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         handler = self._makeOne()
         param = handler.parse_query(field, field_query)
         self.assertEqual(param,
-            {'fq': u'dummyfield:("news" AND "sports" AND "\\"local\\"")'})
+            {'fq': 'dummyfield:("news" AND "sports" AND "\\"local\\"")'})
 
     def test_convert_none(self):
         handler = self._makeOne()
@@ -88,22 +88,22 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         handler = self._makeOne()
         actual = handler.convert('abc')
         self.assertEqual(len(actual), 1)
-        self.assert_(isinstance(actual[0], unicode))
-        self.assertEqual(actual, [u'abc'])
+        self.assertTrue(isinstance(actual[0], str))
+        self.assertEqual(actual, ['abc'])
 
     def test_convert_multiple(self):
         handler = self._makeOne()
         actual = handler.convert(('abc', 'def'))
         self.assertEqual(len(actual), 2)
-        self.assert_(isinstance(actual[0], unicode))
-        self.assertEqual(actual, [u'abc', u'def'])
+        self.assertTrue(isinstance(actual[0], str))
+        self.assertEqual(actual, ['abc', 'def'])
 
     def test_convert_invalid_xml(self):
         handler = self._makeOne()
         actual = handler.convert('A backspace\x08 escaped\x1b!')
         self.assertEqual(len(actual), 1)
-        self.assert_(isinstance(actual[0], unicode))
-        self.assertEqual(actual, [u'A backspace escaped!'])
+        self.assertTrue(isinstance(actual[0], str))
+        self.assertEqual(actual, ['A backspace escaped!'])
 
 
 class BoolFieldHandlerTests(unittest.TestCase):
@@ -257,18 +257,18 @@ class TextFieldHandlerTests(unittest.TestCase):
 
     def test_simple(self):
         field = DummyField()
-        field_query = u'alpha beta'
+        field_query = 'alpha beta'
         handler = self._makeOne()
         param = handler.parse_query(field, field_query)
-        self.assertEqual(param, {'q': u'+dummyfield:(alpha beta)'})
+        self.assertEqual(param, {'q': '+dummyfield:(alpha beta)'})
 
     def test_complex(self):
         field = DummyField()
-        field_query = u'(fun OR play) +with Solr^4'
+        field_query = '(fun OR play) +with Solr^4'
         handler = self._makeOne()
         param = handler.parse_query(field, field_query)
         self.assertEqual(param,
-            {'q': u'+dummyfield:((fun OR play) +with Solr^4)'})
+            {'q': '+dummyfield:((fun OR play) +with Solr^4)'})
 
 
 class DummyField:

@@ -40,20 +40,20 @@ class DefaultFieldHandler(object):
 
         if len(parts) == 1:
             escaped = solr_escape(parts[0])
-            return {'fq': u'%s:"%s"' % (name, escaped)}
+            return {'fq': '%s:"%s"' % (name, escaped)}
 
         operator = record.get('operator', self.default_operator)
         if operator not in self.operators:
             raise AssertionError("Invalid operator: %s" % operator)
 
-        parts_fmt = [u'"%s"' % solr_escape(part) for part in parts]
-        s = (u' %s ' % operator.upper()).join(parts_fmt)
-        return {'fq': u'%s:(%s)' % (name, s)}
+        parts_fmt = ['"%s"' % solr_escape(part) for part in parts]
+        s = (' %s ' % operator.upper()).join(parts_fmt)
+        return {'fq': '%s:(%s)' % (name, s)}
 
     def convert(self, data):
         if data is None:
             return ()
-        if hasattr(data, '__iter__') and not isinstance(data, basestring):
+        if hasattr(data, '__iter__') and not isinstance(data, str):
             data_seq = data
         else:
             data_seq = [data]
@@ -64,7 +64,7 @@ class DefaultFieldHandler(object):
         if isinstance(value, str):
             s = value.decode('utf-8')
         else:
-            s = unicode(value)
+            s = str(value)
         return invalid_xml_re.sub('', s)
 
 
@@ -91,23 +91,23 @@ class DateFieldHandler(DefaultFieldHandler):
             return super(DateFieldHandler, self).parse_query(field, field_query)
         elif query_range == 'min':
             min_query = self.convert_one(min(record.keys))
-            return {'fq': u'%s:[%s TO *]' % (name, solr_escape(min_query))}
+            return {'fq': '%s:[%s TO *]' % (name, solr_escape(min_query))}
         elif query_range == 'max':
             max_query = self.convert_one(max(record.keys))
-            return {'fq': u'%s:[* TO %s]' % (name, solr_escape(max_query))}
+            return {'fq': '%s:[* TO %s]' % (name, solr_escape(max_query))}
         elif query_range == 'min:max':
             min_query = self.convert_one(min(record.keys))
             max_query = self.convert_one(max(record.keys))
-            return {'fq': u'%s:[%s TO %s]' % (name, solr_escape(min_query), solr_escape(max_query))}
+            return {'fq': '%s:[%s TO %s]' % (name, solr_escape(min_query), solr_escape(max_query))}
         else:
             raise AssertionError("Invalid range: %s" % range)
 
     def convert_one(self, value):
         if isinstance(value, DateTime):
             t_tup = value.toZone('UTC').parts()
-        elif isinstance(value, (float, int, long)):
+        elif isinstance(value, (float, int)):
             t_tup = time.gmtime(value)
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             t_obj = DateTime(value).toZone('UTC')
             t_tup = t_obj.parts()
         elif isinstance(value, date):
@@ -135,12 +135,12 @@ class TextFieldHandler(DefaultFieldHandler):
         if not query_str:
             return None
 
-        return {'q': u'+%s:%s' % (name, quote_query(query_str))}
+        return {'q': '+%s:%s' % (name, quote_query(query_str))}
 
     def convert(self, data):
         if data is None:
             return ()
-        if hasattr(data, '__iter__') and not isinstance(data, basestring):
+        if hasattr(data, '__iter__') and not isinstance(data, str):
             data_seq = data
         else:
             data_seq = [data]

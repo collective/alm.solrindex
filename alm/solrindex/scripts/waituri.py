@@ -4,7 +4,7 @@
 Use it to wait for Solr to start up.
 """
 
-from urllib2 import urlopen
+from urllib.request import urlopen
 import sys
 import time
 

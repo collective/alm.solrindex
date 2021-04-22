@@ -42,8 +42,8 @@ class SolrIndexTests(unittest.TestCase):
         index = self._makeOne('id', 'someuri')
         cm = index.connection_manager
         cm2 = index.connection_manager
-        self.assert_(cm is cm2)
-        self.assert_(cm.index is index)
+        self.assertTrue(cm is cm2)
+        self.assertTrue(cm.index is index)
 
     def test_getIndexSourceNames(self):
         self._registerConnectionManager()
@@ -87,7 +87,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': "f1:somequery", 'fields': 'docid'}])
@@ -100,7 +100,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5, 'score': 0.25}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 250})
+        self.assertEqual(dict(list(result.items())), {5: 250})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': "f1:somequery", 'fields': 'docid'}])
@@ -124,7 +124,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
             'q': 'stuff f1:somequery',
@@ -160,7 +160,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
             'q': 'stuff f1:somequery',
@@ -180,7 +180,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': 'f1:somequery', 'fields': 'docid'}])
@@ -190,14 +190,14 @@ class SolrIndexTests(unittest.TestCase):
         self._registerConnectionManager()
         index = self._makeOne('id', 'someuri')
         cm = index.connection_manager
-        request = {'f1': u'\xfcber'}
+        request = {'f1': '\xfcber'}
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
-            {'q': 'f1:\xc3\xbcber', 'fields': 'docid'}])
+            {'q': 'f1:über', 'fields': 'docid'}])
 
     def test__apply_index_with_highlighting(self):
         self._registerConnectionManager()
@@ -210,7 +210,7 @@ class SolrIndexTests(unittest.TestCase):
         f2.stored = True
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': 'f1:someuri', 'fields': 'docid', 'highlight': [f2.name]}])
@@ -248,7 +248,7 @@ class SolrIndexTests(unittest.TestCase):
         index._p_jar = zodbc = DummyZODBConnection()
         cm = index.connection_manager
         self.assertEqual(len(zodbc.foreign_connections), 1)
-        self.assert_(zodbc.foreign_connections['8byteoid'] is cm)
+        self.assertTrue(zodbc.foreign_connections['8byteoid'] is cm)
 
     def test_get_static_solr_uri(self):
         index = self._makeOne('id', 'someuri')
@@ -306,8 +306,8 @@ class SolrConnectionManagerTests(unittest.TestCase):
     def test_get_connection(self):
         obj = self._makeOne()
         c = obj.connection
-        self.assert_(c is not None)
-        self.assert_(obj.connection is c)
+        self.assertTrue(c is not None)
+        self.assertTrue(obj.connection is c)
 
     def test_set_changed(self):
         obj = self._makeOne()

@@ -47,5 +47,5 @@ def getToolByName(obj, name, default=_marker):
         return default
     else:
         if tool is _marker:
-            raise AttributeError, name
+            raise AttributeError(name)
         return tool

@@ -116,15 +116,15 @@ class QuoteQueryTests(unittest.TestCase):
 
     def testUnicode(self):
         quote = self._callFUT
-        self.assertEqual(quote(u'foø'), u'foø')
-        self.assertEqual(quote(u'"foø'), u'\\"foø')
-        self.assertEqual(quote(u'whät?'), u'whät?')
-        self.assertEqual(quote(u'"whät?"'), u'"whät\\?"')
-        self.assertEqual(quote(u'"[ø]"'), u'"\\[ø\\]"')
-        self.assertEqual(quote(u'[ø]'), u'\\[ø\\]')
-        self.assertEqual(quote(u'"foø*"'), u'"foø\\*"')
-        self.assertEqual(quote(u'"foø bar?"'), u'"foø bar\\?"')
-        self.assertEqual(quote(u'john@foo.com'), u'john@foo.com')
+        self.assertEqual(quote('foø'), 'foø')
+        self.assertEqual(quote('"foø'), '\\"foø')
+        self.assertEqual(quote('whät?'), 'whät?')
+        self.assertEqual(quote('"whät?"'), '"whät\\?"')
+        self.assertEqual(quote('"[ø]"'), '"\\[ø\\]"')
+        self.assertEqual(quote('[ø]'), '\\[ø\\]')
+        self.assertEqual(quote('"foø*"'), '"foø\\*"')
+        self.assertEqual(quote('"foø bar?"'), '"foø bar\\?"')
+        self.assertEqual(quote('john@foo.com'), 'john@foo.com')
 
     def testSolrSpecifics(self):
         # http://wiki.apache.org/solr/SolrQuerySyntax
