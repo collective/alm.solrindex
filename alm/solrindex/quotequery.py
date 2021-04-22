@@ -110,7 +110,7 @@ def quote_query(query):
     For example, 'foo bar' is converted to '(foo bar)'.
     """
     stack = Stack()
-    raw_tokens = query_tokenizer.findall(query)
+    raw_tokens = query_tokenizer.findall(query.strip())
 
     # fold token[4] into token[1]
     tokens = []
