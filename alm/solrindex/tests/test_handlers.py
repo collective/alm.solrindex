@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import unittest
 
 
@@ -14,7 +15,7 @@ class SolrEscapeTests(unittest.TestCase):
         self.assertEqual(self._callFUT('abc'), 'abc')
 
     def test_unicode(self):
-        self.assertEqual(self._callFUT('smile \u30b7'), 'smile \u30b7')
+        self.assertEqual(self._callFUT('smile シ'), 'smile シ')
 
     def test_quotes(self):
         self.assertEqual(self._callFUT('I am "quoted"'),
@@ -55,11 +56,11 @@ class DefaultFieldHandlerTests(unittest.TestCase):
 
     def test_escaped_query(self):
         field = DummyField()
-        field_query = 'Hello "Solr"! \u30b7'
+        field_query = 'Hello "Solr"! シ'
         handler = self._makeOne()
         param = handler.parse_query(field, field_query)
         self.assertEqual(param,
-            {'fq': 'dummyfield:"Hello \\"Solr\\"\\! \u30b7"'})
+            {'fq': r'dummyfield:"Hello \"Solr\"\! シ"'})
 
     def test_query_multiple_default_operator(self):
         field = DummyField()
@@ -67,7 +68,7 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         handler = self._makeOne()
         param = handler.parse_query(field, field_query)
         self.assertEqual(param,
-            {'fq': 'dummyfield:("news" OR "sports" OR "\\"local\\"")'})
+            {'fq': r'dummyfield:("news" OR "sports" OR "\"local\"")'})
 
     def test_query_multiple_and_operator(self):
         field = DummyField()
@@ -78,7 +79,7 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         handler = self._makeOne()
         param = handler.parse_query(field, field_query)
         self.assertEqual(param,
-            {'fq': 'dummyfield:("news" AND "sports" AND "\\"local\\"")'})
+            {'fq': r'dummyfield:("news" AND "sports" AND "\"local\"")'})
 
     def test_convert_none(self):
         handler = self._makeOne()
