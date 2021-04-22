@@ -4,7 +4,10 @@
 Use it to wait for Solr to start up.
 """
 
-from urllib.request import urlopen
+try:
+    import urllib.request as urllib_request #for python 3
+except ImportError:
+    import urllib2 as urllib_request # for python 2
 import sys
 import time
 
@@ -29,7 +32,7 @@ def main():
             try:
                 f = None
                 try:
-                    f = urlopen(uri)
+                    f = urllinb_request.urlopen(uri)
                     f.read()
                 finally:
                     if f is not None:

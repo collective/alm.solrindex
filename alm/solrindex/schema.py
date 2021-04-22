@@ -13,8 +13,10 @@ from zope.component import getUtility
 from zope.component import queryUtility
 from zope.interface import implementer
 import logging
-from urllib.request import urlopen
-from urllib.error import URLError
+try:
+    import urllib.request as urllib_request #for python 3
+except ImportError:
+    import urllib2 as urllib_request # for python 2
 
 
 log = logging.getLogger(__name__)
@@ -43,8 +45,8 @@ class SolrSchema(object):
             uri = uri % solr_uri
             log.debug('getting schema from %s', uri)
             try:
-                f = urlopen(uri)
-            except URLError:
+                f = urllib_request.urlopen(uri)
+            except urllib_request.URLError:
                 if i < len(schema_uris) - 1:
                     # try the next URI
                     continue
