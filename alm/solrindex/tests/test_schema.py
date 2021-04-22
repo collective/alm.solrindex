@@ -48,7 +48,7 @@ class SolrSchemaTests(unittest.TestCase):
         finally:
             shutil.rmtree(d)
 
-        self.assertEqual(content, '<schema></schema>')
+        self.assertEqual(content, b'<schema></schema>')
 
     def test_xml_init(self):
         import os
