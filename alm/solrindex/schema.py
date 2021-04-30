@@ -11,10 +11,7 @@ from zope.component import getUtility
 from zope.component import queryUtility
 from zope.interface import implementer
 import logging
-try:
-    import urllib.request as urllib_request #for python 3
-except ImportError:
-    import urllib2 as urllib_request # for python 2
+from future.moves.urllib import request as urllib_request
 
 
 log = logging.getLogger(__name__)
