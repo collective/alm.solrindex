@@ -88,7 +88,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(list(result.items())), {5: 0})
+        self.assertEqual(dict(result.items()), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': b"f1:somequery", 'fields': b'docid'}])
@@ -101,7 +101,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5, 'score': 0.25}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(list(result.items())), {5: 250})
+        self.assertEqual(dict(result.items()), {5: 250})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': b"f1:somequery", 'fields': b'docid'}])
@@ -125,7 +125,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(list(result.items())), {5: 0})
+        self.assertEqual(dict(result.items()), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
             'q': b'stuff f1:somequery',
@@ -161,7 +161,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(list(result.items())), {5: 0})
+        self.assertEqual(dict(result.items()), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
             'q': b'stuff f1:somequery',
@@ -181,7 +181,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(list(result.items())), {5: 0})
+        self.assertEqual(dict(result.items()), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': b'f1:somequery', 'fields': b'docid'}])
@@ -195,7 +195,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(list(result.items())), {5: 0})
+        self.assertEqual(dict(result.items()), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': b'f1:\xc3\xbcber', 'fields': b'docid'}])
@@ -211,7 +211,7 @@ class SolrIndexTests(unittest.TestCase):
         f2.stored = True
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(list(result.items())), {5: 0})
+        self.assertEqual(dict(result.items()), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             dict(q=b'f1:someuri', fields=b'docid', highlight=[f2.name.encode("utf-8")])
