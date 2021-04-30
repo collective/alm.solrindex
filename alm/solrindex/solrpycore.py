@@ -281,6 +281,7 @@ Enter a raw query, without processing the returned HTML contents.
 """
 from future.standard_library import install_aliases
 install_aliases()
+from past.builtins import unicode
 
 import sys
 import socket
@@ -455,14 +456,14 @@ class SolrConnection:
         if highlight:
             params['hl'] = 'true'
             if not isinstance(highlight, (bool, int, float)):
-                if not isinstance(highlight, str):
+                if not isinstance(highlight, basestring):
                     highlight = ",".join(highlight)
                 params['hl.fl'] = highlight
             else:
                 if not fields:
                     raise ValueError(
                         "highlight is True and no fields were given")
-                elif isinstance(fields, str):
+                elif isinstance(fields, basestring):
                     params['hl.fl'] = [fields]
                 else:
                     params['hl.fl'] = ",".join(fields)
@@ -471,7 +472,7 @@ class SolrConnection:
             params['q'] = q
 
         if fields:
-            if not isinstance(fields, str):
+            if not isinstance(fields, basestring):
                 fields = ",".join(fields)
         if not fields:
             fields = '*'
@@ -479,7 +480,7 @@ class SolrConnection:
         if sort:
             if not sort_order or sort_order not in ("asc", "desc"):
                 raise ValueError("sort_order must be 'asc' or 'desc'")
-            if not isinstance(sort, str):
+            if not isinstance(sort, basestring):
                 sort = ",".join(sort)
             params['sort'] = "%s %s" % (sort, sort_order)
 
@@ -556,7 +557,7 @@ class SolrConnection:
         """
         Delete a specific document by id.
         """
-        xstr = '<delete><id>%s</id></delete>' % escape(str(id))
+        xstr = u'<delete><id>%s</id></delete>' % escape(unicode(id))
         return self._update(xstr)
 
     def delete_many(self, ids):
@@ -569,7 +570,7 @@ class SolrConnection:
         """
         Delete all documents returned by a query.
         """
-        xstr = '<delete><query>%s</query></delete>' % escape(query)
+        xstr = u'<delete><query>%s</query></delete>' % escape(query)
         return self._update(xstr)
 
     def add(self, _commit=False, **fields):
@@ -580,9 +581,9 @@ class SolrConnection:
         Example:
             connection.add(id="mydoc", author="Me")
         """
-        lst = ['<add>']
+        lst = [u'<add>']
         self.__add(lst, fields)
-        lst.append('</add>')
+        lst.append(u'</add>')
         xstr = ''.join(lst)
         if not _commit:
             return self._update(xstr)
@@ -597,10 +598,10 @@ class SolrConnection:
         docs -- a list of dicts, where each dict is a document to add
             to SOLR.
         """
-        lst = ['<add>']
+        lst = [u'<add>']
         for doc in docs:
             self.__add(lst, doc)
-        lst.append('</add>')
+        lst.append(u'</add>')
         xstr = ''.join(lst)
         if not _commit:
             return self._update(xstr)
@@ -622,9 +623,9 @@ class SolrConnection:
             options = ''
 
         if _optimize:
-            xstr = '<optimize %s/>' % options
+            xstr = u'<optimize %s/>' % options
         else:
-            xstr = '<commit %s/>' % options
+            xstr = u'<commit %s/>' % options
 
         return self._update(xstr)
 
@@ -687,7 +688,7 @@ class SolrConnection:
         return data
 
     def __add(self, lst, fields):
-        lst.append('<doc>')
+        lst.append(u'<doc>')
         for field, value in fields.items():
             # Handle multi-valued fields if values
             # is passed in as a list/tuple
@@ -712,7 +713,7 @@ class SolrConnection:
 
                 lst.append('<field name=%s>%s</field>' % (
                     (quoteattr(field),
-                    escape(str(value)))))
+                    escape(unicode(value)))))
         lst.append('</doc>')
 
     def __repr__(self):
