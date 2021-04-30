@@ -3,6 +3,7 @@
 # See http://lucene.apache.org/java/2_4_0/queryparsersyntax.html
 
 from re import compile
+from past.builtins import unicode
 
 # Solr/lucene reserved characters/terms: + - && || ! ( ) { } [ ] ^ " ~ * ? : \
 # Five groups for tokenizer:
@@ -102,6 +103,9 @@ class Stack(list):
 
     def __str__(self):
         return ''.join(str(x) for x in self[0])
+
+    def __unicode__(self):
+        return ''.join(unicode(x) for x in self[0])
 
 
 def quote_query(query):
@@ -254,4 +258,4 @@ def quote_query(query):
             elif isinstance(stack.current, list):
                 stack.current.append('\\%s' % special)
         i += 1
-    return str(stack)
+    return unicode(stack)

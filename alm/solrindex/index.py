@@ -258,8 +258,7 @@ class SolrIndex(PropertyManager, SimpleItem):
             field_params = field.handler.parse_query(field, field_query)
             if field_params:
                 queried.append(name)
-                for k in field_params:
-                    to_add = field_params[k]
+                for k, to_add in field_params.items():
                     if k not in solr_params:
                         solr_params[k] = to_add
                     else:
@@ -268,7 +267,7 @@ class SolrIndex(PropertyManager, SimpleItem):
                         if not isinstance(v, list):
                             v = [v]
                             solr_params[k] = v
-                        if isinstance(to_add, str):
+                        if isinstance(to_add, basestring):
                             v.append(to_add)
                         else:
                             v.extend(to_add)

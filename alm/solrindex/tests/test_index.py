@@ -91,7 +91,7 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
-            {'q': "f1:somequery", 'fields': 'docid'}])
+            {'q': b"f1:somequery", 'fields': b'docid'}])
 
     def test__apply_index_with_scores(self):
         self._registerConnectionManager()
@@ -104,7 +104,7 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(dict(list(result.items())), {5: 250})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
-            {'q': "f1:somequery", 'fields': 'docid'}])
+            {'q': b"f1:somequery", 'fields': b'docid'}])
 
     def test__apply_index_no_matching_fields(self):
         self._registerConnectionManager()
@@ -128,9 +128,9 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
-            'q': 'stuff f1:somequery',
-            'fields': 'docid',
-            'spellcheck': 'true',
+            'q': b'stuff f1:somequery',
+            'fields': b'docid',
+            'spellcheck': b'true',
             }])
 
     def test__apply_index_dismax_no_q(self):
@@ -144,10 +144,10 @@ class SolrIndexTests(unittest.TestCase):
         result, queried = index._apply_index(request)
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
-                'q': '',
-                'fields': 'docid',
-                'defType': 'dismax',
-                'q.alt': '*:*',
+                'q': b'',
+                'fields': b'docid',
+                'defType': b'dismax',
+                'q.alt': b'*:*',
                 }])
 
     def test__apply_index_dismax(self):
@@ -164,9 +164,9 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
-            'q': 'stuff f1:somequery',
-            'fields': 'docid',
-            'defType': 'dismax',
+            'q': b'stuff f1:somequery',
+            'fields': b'docid',
+            'defType': b'dismax',
             }])
 
     def test__apply_index_with_callback(self):
@@ -184,21 +184,21 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
-            {'q': 'f1:somequery', 'fields': 'docid'}])
+            {'q': b'f1:somequery', 'fields': b'docid'}])
         self.assertEqual(responses, [[{'docid': 5}]])
 
     def test__apply_index_with_unicode(self):
         self._registerConnectionManager()
         index = self._makeOne('id', 'someuri')
         cm = index.connection_manager
-        request = {'f1': 'über'}
+        request = {'f1': u'über'}
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
         self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
-            {'q': 'f1:über', 'fields': 'docid'}])
+            {'q': b'f1:\xc3\xbcber', 'fields': b'docid'}])
 
     def test__apply_index_with_highlighting(self):
         self._registerConnectionManager()
@@ -214,7 +214,8 @@ class SolrIndexTests(unittest.TestCase):
         self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
-            {'q': 'f1:someuri', 'fields': 'docid', 'highlight': [f2.name]}])
+            dict(q=b'f1:someuri', fields=b'docid', highlight=[f2.name.encode("utf-8")])
+        ])
 
     def test_indexSize(self):
         self._registerConnectionManager()
