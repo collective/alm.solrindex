@@ -283,6 +283,7 @@ from future.standard_library import install_aliases
 install_aliases()
 from past.builtins import unicode
 
+import cgi
 import sys
 import socket
 import http.client
@@ -499,7 +500,8 @@ class SolrConnection:
             # If we pass in rsp directly, instead of using rsp.read())
             # and creating a StringIO, then Persistence breaks with
             # an internal python error.
-            xml = StringIO(rsp.read())
+            _, params = cgi.parse_header(rsp.getheader("Content-type", ""))
+            xml = StringIO(rsp.read().decode(params.get("charset", "UTF-8")))
             data = parse_query_response(xml,  params=params, connection=self)
 
         finally:
