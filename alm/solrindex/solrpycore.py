@@ -279,6 +279,7 @@ Enter a raw query, without processing the returned HTML contents.
     >>> print c.raw_query(q='id:[* TO *]', wt='python', rows='10')
 
 """
+from __future__ import unicode_literals
 from builtins import str
 from past.builtins import basestring
 from builtins import object

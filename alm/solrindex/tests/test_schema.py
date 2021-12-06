@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from builtins import object
 import unittest
 from zope.testing.cleanup import cleanUp

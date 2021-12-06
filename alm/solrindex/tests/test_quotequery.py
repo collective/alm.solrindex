@@ -2,6 +2,7 @@
 
 # This is derived from collective.solr.tests.test_query.
 
+from __future__ import unicode_literals
 import unittest
 
 

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 
 # This is derived from collective.solr.queryparser.
 # See http://lucene.apache.org/java/2_4_0/queryparsersyntax.html

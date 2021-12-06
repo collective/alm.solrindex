@@ -1,4 +1,5 @@
 """Handlers for various Solr field types"""
+from __future__ import unicode_literals
 from builtins import str
 from builtins import object
 from alm.solrindex.interfaces import ISolrFieldHandler

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from Products.GenericSetup.interfaces import INode
 from Products.GenericSetup.testing import NodeAdapterTestCase
 from Products.GenericSetup.testing import DummySetupEnviron
