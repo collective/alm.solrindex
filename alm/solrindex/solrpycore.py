@@ -279,9 +279,12 @@ Enter a raw query, without processing the returned HTML contents.
     >>> print c.raw_query(q='id:[* TO *]', wt='python', rows='10')
 
 """
+from builtins import str
+from past.builtins import basestring
+from builtins import object
 from future.standard_library import install_aliases
 install_aliases()
-from past.builtins import unicode
+from past.builtins import str
 
 import cgi
 import sys
@@ -325,7 +328,7 @@ class SolrException(Exception):
 # ===================================================================
 # Connection Object
 # ===================================================================
-class SolrConnection:
+class SolrConnection(object):
     """
     Represents a Solr connection.
 
@@ -452,7 +455,7 @@ class SolrConnection:
 
         # Clean up optional parameters to match SOLR spec.
         params = dict([(key.replace('_', '.'), value)
-                      for key, value in params.items()])
+                      for key, value in list(params.items())])
 
         if highlight:
             params['hl'] = 'true'
@@ -559,7 +562,7 @@ class SolrConnection:
         """
         Delete a specific document by id.
         """
-        xstr = u'<delete><id>%s</id></delete>' % escape(unicode(id))
+        xstr = u'<delete><id>%s</id></delete>' % escape(str(id))
         return self._update(xstr)
 
     def delete_many(self, ids):
@@ -648,7 +651,7 @@ class SolrConnection:
 
         # Clean up optional parameters to match SOLR spec.
         params = dict([(key.replace('_', '.'), value)
-                       for key, value in params.items()])
+                       for key, value in list(params.items())])
 
         request = urllib.parse.urlencode(params, doseq=True)
 
@@ -691,7 +694,7 @@ class SolrConnection:
 
     def __add(self, lst, fields):
         lst.append(u'<doc>')
-        for field, value in fields.items():
+        for field, value in list(fields.items()):
             # Handle multi-valued fields if values
             # is passed in as a list/tuple
             if not isinstance(value, (list, tuple)):
@@ -715,7 +718,7 @@ class SolrConnection:
 
                 lst.append('<field name=%s>%s</field>' % (
                     (quoteattr(field),
-                    escape(unicode(value)))))
+                    escape(str(value)))))
         lst.append('</doc>')
 
     def __repr__(self):
@@ -939,7 +942,7 @@ class ResponseContentHandler(ContentHandler):
         else:
             raise SolrException("Unknown tag: %s" % name)
 
-        for attr, val in node.attrs.items():
+        for attr, val in list(node.attrs.items()):
             if attr != 'name':
                 setattr(node.final, attr, val)
 
@@ -971,7 +974,7 @@ class Node(object):
             self.name,
             "".join(self.chars).strip(),
             ' '.join(['%s="%s"' % (attr, val)
-                            for attr, val in self.attrs.items()]))
+                            for attr, val in list(self.attrs.items())]))
 
 
 # ===================================================================

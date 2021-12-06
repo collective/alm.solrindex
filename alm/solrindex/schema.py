@@ -1,4 +1,5 @@
 """Parser of a Solr schema.xml"""
+from builtins import object
 from alm.solrindex.interfaces import ISolrField
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.interfaces import ISolrSchema

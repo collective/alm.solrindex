@@ -1,8 +1,9 @@
 
+from builtins import object
 from alm.solrindex.index import SolrIndex
 
 
-class SolrIndexAddView:
+class SolrIndexAddView(object):
 
     def __call__(self, id='', solr_uri='', submit_add='',
             delete_redundant=False):

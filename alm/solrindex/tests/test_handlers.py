@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from builtins import object
 import unittest
-from past.builtins import unicode
+from past.builtins import str
 
 
 class SolrEscapeTests(unittest.TestCase):
@@ -90,21 +91,21 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         handler = self._makeOne()
         actual = handler.convert('abc')
         self.assertEqual(len(actual), 1)
-        self.assertIsInstance(actual[0], unicode)
+        self.assertIsInstance(actual[0], str)
         self.assertEqual(actual, [u'abc'])
 
     def test_convert_multiple(self):
         handler = self._makeOne()
         actual = handler.convert(('abc', 'def'))
         self.assertEqual(len(actual), 2)
-        self.assertIsInstance(actual[0], unicode)
+        self.assertIsInstance(actual[0], str)
         self.assertEqual(actual, [u'abc', u'def'])
 
     def test_convert_invalid_xml(self):
         handler = self._makeOne()
         actual = handler.convert('A backspace\x08 escaped\x1b!')
         self.assertEqual(len(actual), 1)
-        self.assertIsInstance(actual[0], unicode)
+        self.assertIsInstance(actual[0], str)
         self.assertEqual(actual, [u'A backspace escaped!'])
 
 
@@ -273,5 +274,5 @@ class TextFieldHandlerTests(unittest.TestCase):
             {'q': u'+dummyfield:((fun OR play) +with Solr^4)'})
 
 
-class DummyField:
+class DummyField(object):
     name = 'dummyfield'

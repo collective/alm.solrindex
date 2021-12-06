@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from builtins import object
 import unittest
 from zope.testing.cleanup import cleanUp
 
@@ -88,7 +89,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': b"f1:somequery", 'fields': b'docid'}])
@@ -101,7 +102,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5, 'score': 0.25}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 250})
+        self.assertEqual(dict(list(result.items())), {5: 250})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': b"f1:somequery", 'fields': b'docid'}])
@@ -125,7 +126,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
             'q': b'stuff f1:somequery',
@@ -161,7 +162,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [{
             'q': b'stuff f1:somequery',
@@ -181,7 +182,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': b'f1:somequery', 'fields': b'docid'}])
@@ -195,7 +196,7 @@ class SolrIndexTests(unittest.TestCase):
         cm.connection.results = [[{'docid': 5}]]
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             {'q': b'f1:\xc3\xbcber', 'fields': b'docid'}])
@@ -211,7 +212,7 @@ class SolrIndexTests(unittest.TestCase):
         f2.stored = True
         result, queried = index._apply_index(request)
         self.assertEqual(queried, ['f1'])
-        self.assertEqual(dict(result.items()), {5: 0})
+        self.assertEqual(dict(list(result.items())), {5: 0})
         self.assertFalse(cm.changed)
         self.assertEqual(cm.connection.queries, [
             dict(q=b'f1:someuri', fields=b'docid', highlight=[f2.name.encode("utf-8")])
@@ -289,7 +290,7 @@ class SolrConnectionManagerTests(unittest.TestCase):
         return SolrConnectionManager
 
     def _makeOne(self, uri=''):
-        class DummySolrIndex:
+        class DummySolrIndex(object):
             solr_uri = uri
         obj = self._getTargetClass()(DummySolrIndex(), DummySolrConnection)
         return obj
@@ -341,12 +342,12 @@ class SolrConnectionManagerTests(unittest.TestCase):
         self.assertEqual(obj._connection.commits, 1)
 
 
-class DummyZODBConnection:
+class DummyZODBConnection(object):
     def register(self, obj):
         pass
 
 
-class DummyConnectionManager:
+class DummyConnectionManager(object):
     def __init__(self, index):
         self.index = index
         self.schema = DummySchema()
@@ -358,7 +359,7 @@ class DummyConnectionManager:
         self.changed = True
 
 
-class DummySolrConnection:
+class DummySolrConnection(object):
     def __init__(self, uri=None):
         self.uri = uri
         self.queries = []
@@ -388,7 +389,7 @@ class DummySolrConnection:
         self.commits += 1
 
 
-class DummySchema:
+class DummySchema(object):
     uniqueKey = 'docid'
 
     def __init__(self):
@@ -397,7 +398,7 @@ class DummySchema:
             self.fields.append(DummyField(name))
 
 
-class DummyField:
+class DummyField(object):
     def __init__(self, name):
         self.name = name
         self.stored = False
@@ -405,7 +406,7 @@ class DummyField:
         self.type = 'dummy'
 
 
-class DummyFieldHandler:
+class DummyFieldHandler(object):
     def parse_query(self, field, field_query):
         return {'q': '%s:%s' % (field.name, field_query)}
 
@@ -413,12 +414,12 @@ class DummyFieldHandler:
         return [value]
 
 
-class DummySolrResult:
+class DummySolrResult(object):
     def __init__(self, numFound):
         self.numFound = numFound
 
 
-class DummyIndexableObject:
+class DummyIndexableObject(object):
     f1 = 'a'
 
     def f2(self):

@@ -1,4 +1,6 @@
 """SolrIndex and SolrConnectionManager"""
+from builtins import str
+from builtins import object
 import logging
 import os
 import transaction
@@ -10,7 +12,7 @@ from OFS.SimpleItem import SimpleItem
 from Products.PluginIndexes.common.util import parseIndexRequest
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from past.builtins import basestring
-from past.builtins import unicode
+from past.builtins import str
 from transaction.interfaces import IDataManager
 try:
     from zope.app.component.hooks import getSite
@@ -258,7 +260,7 @@ class SolrIndex(PropertyManager, SimpleItem):
             field_params = field.handler.parse_query(field, field_query)
             if field_params:
                 queried.append(name)
-                for k, to_add in field_params.items():
+                for k, to_add in list(field_params.items()):
                     if k not in solr_params:
                         solr_params[k] = to_add
                     else:
@@ -361,7 +363,7 @@ class SolrIndex(PropertyManager, SimpleItem):
 
     def _transcode_params(self, params):
         transcoded_params = {}
-        for key, val in params.items():
+        for key, val in list(params.items()):
             enc_val = None
             if isinstance(val, basestring):
                 enc_val = self._encode_param(val)
@@ -384,7 +386,7 @@ class SolrIndex(PropertyManager, SimpleItem):
 
     def _decode_param(self, val):
         if isinstance(val, dict):
-            return {k: self._decode_param(v) for k, v in val.items()}
+            return {k: self._decode_param(v) for k, v in list(val.items())}
         elif isinstance(val, list):
             return [self._decode_param(v) for v in val]
         elif isinstance(val, basestring):
@@ -428,7 +430,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         cm.connection.delete_query('*:*')
 
 
-class NoRollbackSavepoint:
+class NoRollbackSavepoint(object):
 
     def __init__(self, datamanager):
         self.datamanager = datamanager
@@ -499,15 +501,15 @@ class SolrConnectionManager(object):
         return NoRollbackSavepoint(self)
 
 def force_unicode(s, encoding='utf-8', errors='strict'):
-    if isinstance(s, unicode):
+    if isinstance(s, str):
         return s
     try:
         if not isinstance(s, basestring,):
             if hasattr(s, '__unicode__'):
-                s = unicode(s)
+                s = str(s)
             else:
                 try:
-                    s = unicode(str(s), encoding, errors)
+                    s = str(str(s), encoding, errors)
                 except UnicodeEncodeError:
                     if not isinstance(s, Exception):
                         raise
@@ -519,7 +521,7 @@ def force_unicode(s, encoding='utf-8', errors='strict'):
                     # output should be.
                     s = ' '.join([force_unicode(arg, encoding, errors)
                                   for arg in s])
-        elif not isinstance(s, unicode):
+        elif not isinstance(s, str):
             # Note: We use .decode() here, instead of unicode(s, encoding,
             # errors), so that if s is a SafeString, it ends up being a
             # SafeUnicode at the end.
@@ -551,12 +553,12 @@ class HighlightingBrain(AbstractCatalogBrain):
             value.
         """
         highlighting = {}
-        rid = unicode(self.getRID())
+        rid = str(self.getRID())
         brain_highlights = self.highlighting.get(rid, {})
         if fields is None:
             fields = list(brain_highlights.keys())
 
-        for fname, fhighlights in brain_highlights.items():
+        for fname, fhighlights in list(brain_highlights.items()):
             if fname not in highlighting:
                 highlighting[fname] = []
             if isinstance(fhighlights, (tuple,list)):
@@ -565,12 +567,12 @@ class HighlightingBrain(AbstractCatalogBrain):
                 highlighting[fname].append(fhighlights)
 
         results = dict([(fname, fhighlights)
-                        for fname, fhighlights in highlighting.items()
+                        for fname, fhighlights in list(highlighting.items())
                             if fname in fields])
 
         if combine_fields:
             combined = []
-            for val in results.values():
+            for val in list(results.values()):
                 combined.extend(val)
             return combined
         else:
@@ -591,6 +593,6 @@ def get_catalog(obj, name=None):
 def get_solr_indexes(catalog):
     # Use getIndex to ensure the object is wrapped correctly
     return [catalog.getIndex(name)
-            for name, idx in catalog.indexes.items()
+            for name, idx in list(catalog.indexes.items())
                 if ISolrIndex.providedBy(idx)]
 

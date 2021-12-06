@@ -1,9 +1,11 @@
 """Handlers for various Solr field types"""
+from builtins import str
+from builtins import object
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.quotequery import quote_query
 from Products.PluginIndexes.common.util import parseIndexRequest
 from past.builtins import basestring
-from past.builtins import unicode
+from past.builtins import str
 from builtins import bytes
 from zope.interface import implementer
 import re
@@ -67,7 +69,7 @@ class DefaultFieldHandler(object):
         if isinstance(value, bytes):
             s = value.decode('utf-8')
         else:
-            s = unicode(value)
+            s = str(value)
         return invalid_xml_re.sub('', s)
 
 
