@@ -70,7 +70,7 @@ class DefaultFieldHandler(object):
         if isinstance(value, bytes):
             s = value.decode('utf-8')
         else:
-            s = str(value)
+            s = value
         return invalid_xml_re.sub('', s)
 
 

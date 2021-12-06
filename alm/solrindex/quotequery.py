@@ -7,7 +7,6 @@ from builtins import str
 from builtins import object
 from re import compile
 from past.builtins import basestring
-from past.builtins import str
 
 # Solr/lucene reserved characters/terms: + - && || ! ( ) { } [ ] ^ " ~ * ? : \
 # Five groups for tokenizer:

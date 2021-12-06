@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 from builtins import object
 import unittest
-from past.builtins import str
 
 
 class SolrEscapeTests(unittest.TestCase):
@@ -59,7 +58,7 @@ class DefaultFieldHandlerTests(unittest.TestCase):
 
     def test_escaped_query(self):
         field = DummyField()
-        field_query = u'Hello "Solr"! シ'
+        field_query = b'Hello "Solr"! \xe3\x82\xb7'
         handler = self._makeOne()
         param = handler.parse_query(field, field_query)
         self.assertEqual(param,
@@ -92,21 +91,21 @@ class DefaultFieldHandlerTests(unittest.TestCase):
         handler = self._makeOne()
         actual = handler.convert('abc')
         self.assertEqual(len(actual), 1)
-        self.assertIsInstance(actual[0], str)
+        self.assertTrue(not isinstance(actual[0], bytes))
         self.assertEqual(actual, [u'abc'])
 
     def test_convert_multiple(self):
         handler = self._makeOne()
         actual = handler.convert(('abc', 'def'))
         self.assertEqual(len(actual), 2)
-        self.assertIsInstance(actual[0], str)
+        self.assertTrue(not isinstance(actual[0], bytes))
         self.assertEqual(actual, [u'abc', u'def'])
 
     def test_convert_invalid_xml(self):
         handler = self._makeOne()
-        actual = handler.convert('A backspace\x08 escaped\x1b!')
+        actual = handler.convert(b'A backspace\x08 escaped\x1b!')
         self.assertEqual(len(actual), 1)
-        self.assertIsInstance(actual[0], str)
+        self.assertTrue(not isinstance(actual[0], bytes))
         self.assertEqual(actual, [u'A backspace escaped!'])
 
 

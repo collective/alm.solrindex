@@ -13,7 +13,6 @@ from OFS.SimpleItem import SimpleItem
 from Products.PluginIndexes.common.util import parseIndexRequest
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from past.builtins import basestring
-from past.builtins import str
 from transaction.interfaces import IDataManager
 try:
     from zope.app.component.hooks import getSite
@@ -382,8 +381,7 @@ class SolrIndex(PropertyManager, SimpleItem):
 
     def _encode_param(self, val):
         decoded_val = self._decode_param(val)
-        # We don't want to raise a UnicodeEncodeError here
-        return decoded_val.encode('utf-8', 'replace')
+        return decoded_val
 
     def _decode_param(self, val):
         if isinstance(val, dict):
@@ -522,7 +520,7 @@ def force_unicode(s, encoding='utf-8', errors='strict'):
                     # output should be.
                     s = ' '.join([force_unicode(arg, encoding, errors)
                                   for arg in s])
-        elif not isinstance(s, str):
+        elif isinstance(s, bytes):
             # Note: We use .decode() here, instead of unicode(s, encoding,
             # errors), so that if s is a SafeString, it ends up being a
             # SafeUnicode at the end.

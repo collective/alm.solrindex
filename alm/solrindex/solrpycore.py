@@ -285,7 +285,6 @@ from past.builtins import basestring
 from builtins import object
 from future.standard_library import install_aliases
 install_aliases()
-from past.builtins import str
 
 import cgi
 import sys
@@ -489,7 +488,7 @@ class SolrConnection(object):
                 sort = ",".join(sort)
             params['sort'] = "%s %s" % (sort, sort_order)
 
-        if score and not 'score' in fields.replace(',', ' ').split():
+        if score and not 'score' in fields.split(','):
             fields += ',score'
 
         params['fl'] = fields
@@ -676,10 +675,11 @@ class SolrConnection(object):
         try:
             rsp = self._post(self.path + '/update',
                               request, self.xmlheaders)
-            data = rsp.read()
+            data_buffer = rsp.read()
         finally:
             if not self.persistent:
                 self.close()
+        data = data_buffer.decode("utf-8")
 
         # Detect old-style error response (HTTP response code
         # of 200 with a non-zero status.
@@ -716,7 +716,6 @@ class SolrConnection(object):
                     value = utc_to_string(value)
                 elif isinstance(value, bool):
                     value = value and 'true' or 'false'
-
                 lst.append('<field name=%s>%s</field>' % (
                     (quoteattr(field),
                     escape(str(value)))))
