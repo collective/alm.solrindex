@@ -7,17 +7,18 @@ import os
 import transaction
 
 from Acquisition import aq_parent
-from BTrees.IIBTree import IIBTree, IISet
+from BTrees.IIBTree import IIBTree
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
-from Products.PluginIndexes.common.util import parseIndexRequest
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
+try:
+    from plone.app.textfield.value import RichTextValue
+except ImportError:
+    class RichTextValue(object):
+        """Placeholder for a missing RichTextValue class"""
+
 from past.builtins import basestring
 from transaction.interfaces import IDataManager
-try:
-    from zope.app.component.hooks import getSite
-except ImportError:
-    from zope.component.hooks import getSite
 from zope.component import queryAdapter
 from zope.interface import implementer
 
@@ -207,6 +208,8 @@ class SolrIndex(PropertyManager, SimpleItem):
             # Decode all strings using list from `expected_encodings`
             if isinstance(value, str):
                 value = self._decode_param(value)
+            elif isinstance(value, RichTextValue):
+                value = value.output
             value_list = field.handler.convert(value)
             if value_list:
                 values[name] = value_list

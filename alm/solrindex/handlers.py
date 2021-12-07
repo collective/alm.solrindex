@@ -6,7 +6,6 @@ from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.quotequery import quote_query
 from Products.PluginIndexes.common.util import parseIndexRequest
 from past.builtins import basestring
-from past.builtins import str
 from builtins import bytes
 from zope.interface import implementer
 import re
