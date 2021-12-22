@@ -14,6 +14,7 @@ from zope.component import queryUtility
 from zope.interface import implementer
 import logging
 from future.moves.urllib import request as urllib_request
+from future.moves.urllib import error as urllib_error
 
 
 log = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ class SolrSchema(object):
             log.debug('getting schema from %s', uri)
             try:
                 f = urllib_request.urlopen(uri)
-            except urllib_request.URLError:
+            except urllib_error.URLError:
                 if i < len(schema_uris) - 1:
                     # try the next URI
                     continue
