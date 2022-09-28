@@ -1,7 +1,7 @@
 
 """Handlers for various Solr field types"""
 
-import Globals  # import Zope 2 dependencies in order
+
 
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.quotequery import quote_query

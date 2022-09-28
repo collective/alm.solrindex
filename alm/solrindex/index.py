@@ -3,7 +3,6 @@ import logging
 import os
 import transaction
 
-import Globals  # import Zope 2 dependencies in order
 
 from Acquisition import aq_parent
 from BTrees.IIBTree import IIBTree, IISet
