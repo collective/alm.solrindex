@@ -15,7 +15,7 @@ long_description = (
     read("README.rst") + "\n" + "Detailed Documentation\n"
     "======================\n"
     + "\n"
-    + read("alm", "solrindex", "README.rst")
+    + read("src", "alm", "solrindex", "README.rst")
     + "\n"
     + read("CHANGES.rst")
     + "\n"
