@@ -35,7 +35,7 @@ class QuoteQueryTests(unittest.TestCase):
         self.assertEqual(quote('...""'), r"...\"\"")
         # Search for \ has to be quoted
         self.assertEqual(quote("\\"), r"\\")
-        self.assertEqual(quote(r"\?"), r"\\?")
+        self.assertEqual(quote(r"\?"), r"\?")
         self.assertEqual(quote("john@foo.com"), "john@foo.com")
         self.assertEqual(
             quote("http://machine/folder and item and some/path and and amilli3*"),
