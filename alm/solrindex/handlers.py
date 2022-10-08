@@ -1,7 +1,7 @@
 """Handlers for various Solr field types"""
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.quotequery import quote_query
-from Products.PluginIndexes.common.util import parseIndexRequest
+from Products.ZCatalog.query import IndexQuery
 from zope.interface import implementer
 import re
 import time
@@ -28,7 +28,7 @@ class DefaultFieldHandler:
     def parse_query(self, field, field_query):
         name = field.name
         request = {name: field_query}
-        record = parseIndexRequest(request, name, ('query', 'operator'))
+        record = IndexQuery(request, name, ('query', 'operator'))
         if not record.keys:
             return None
 
@@ -82,7 +82,7 @@ class DateFieldHandler(DefaultFieldHandler):
     def parse_query(self, field, field_query):
         name = field.name
         request = {name: field_query}
-        record = parseIndexRequest(request, name, ('query', 'range'))
+        record = IndexQuery(request, name, ('query', 'range'))
         if not record.keys:
             return None
 
@@ -127,7 +127,7 @@ class TextFieldHandler(DefaultFieldHandler):
     def parse_query(self, field, field_query):
         name = field.name
         request = {name: field_query}
-        record = parseIndexRequest(request, name, ('query',))
+        record = IndexQuery(request, name, ('query',))
         if not record.keys:
             return None
 
