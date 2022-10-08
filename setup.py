@@ -62,7 +62,8 @@ setup(
     ],
     extras_require={
         "test": [
-            "zope.testrunner",
+            "gocept.pytestlayer",
+            "pytest",
         ],
     },
     python_requires=">=3.7",
