@@ -22,7 +22,7 @@ class QuoteQueryTests(unittest.TestCase):
         self.assertEqual(quote('foo"'), r"foo\"")
         self.assertEqual(quote("foo bar"), "(foo bar)")
         self.assertEqual(quote('"foo bar" bah'), '("foo bar" bah)')
-        self.assertEqual(quote(r"\["), r"\\[")
+        self.assertEqual(quote(r"\["), r"\[")
         self.assertEqual(quote(")"), r"\)")
         self.assertEqual(quote('"(foo bar)" bah'), r'("\(foo bar\)" bah)')
         self.assertEqual(quote(r'"(foo\"bar)" bah'), r'("\(foo\"bar\)" bah)')

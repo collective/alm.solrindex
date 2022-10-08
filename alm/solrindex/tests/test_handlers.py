@@ -254,7 +254,7 @@ class DateFieldHandlerTests(unittest.TestCase):
         self.assertEqual(
             query,
             {
-                "fq": r"dummyfield:[2015\-12\-04T00\:00\:00.000Z "
+                "fq": r"dummyfield:[2015\-12\-04T00\:00\:00.000Z"
                 r" TO 2015\-12\-05T00\:00\:00.000Z]"
             },
         )
