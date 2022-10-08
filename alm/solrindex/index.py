@@ -1,41 +1,49 @@
 """SolrIndex and SolrConnectionManager"""
-import logging
-import os
-import transaction
-
 from Acquisition import aq_parent
 from BTrees.IIBTree import IIBTree
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
+
+import logging
+import os
+import transaction
+
+
 try:
     from plone.app.textfield.value import RichTextValue
 except ImportError:
+
     class RichTextValue:
         """Placeholder for a missing RichTextValue class"""
+
 
 from transaction.interfaces import IDataManager
 from zope.component import queryAdapter
 from zope.interface import implementer
+
 
 try:
     from Products.CMFCore.utils import getToolByName
 except ImportError:
     from alm.solrindex.utils import getToolByName
 try:
-    from Products.ATContentTypes.criteria import (
-        _criterionRegistry,registerCriterion, unregisterCriterion,
-        STRING_INDICES, TEXT_INDICES, ATSimpleStringCriterion)
+    from Products.ATContentTypes.criteria import _criterionRegistry
+    from Products.ATContentTypes.criteria import ATSimpleStringCriterion
+    from Products.ATContentTypes.criteria import registerCriterion
+    from Products.ATContentTypes.criteria import STRING_INDICES
+    from Products.ATContentTypes.criteria import TEXT_INDICES
+    from Products.ATContentTypes.criteria import unregisterCriterion
 except ImportError:
     pass
 else:
     # If we do not update this, Collections will not be able to use
     # the SearchableText criterion when that has SolrIndex as
     # meta_type.
-    TEXT_INDICES += ('SolrIndex', )
-    STRING_INDICES += ('SolrIndex', )
-    orig = _criterionRegistry.criterion2index['ATSimpleStringCriterion']
-    new_indices = orig + ('SolrIndex', )
+    TEXT_INDICES += ("SolrIndex",)
+    STRING_INDICES += ("SolrIndex",)
+    orig = _criterionRegistry.criterion2index["ATSimpleStringCriterion"]
+    new_indices = orig + ("SolrIndex",)
     # Note that simply by importing, the criterion has already been
     # registered, so our changes above are too late really.  We fix
     # that here.
@@ -48,14 +56,14 @@ from alm.solrindex.interfaces import ISolrIndexingWrapper
 from alm.solrindex.schema import SolrSchema
 from alm.solrindex.solrpycore import SolrConnection
 
-disable_solr = os.environ.get('DISABLE_SOLR')
+
+disable_solr = os.environ.get("DISABLE_SOLR")
 
 log = logging.getLogger(__name__)
 
 
 @implementer(ISolrIndex)
 class SolrIndex(PropertyManager, SimpleItem):
-
 
     # Be careful what meta_type you set here, otherwise there will be
     # no available criteria (like ATSimpleStringCriterion) available
@@ -67,38 +75,55 @@ class SolrIndex(PropertyManager, SimpleItem):
     # Note that the meta_type is also set in the configure.zcml.  Some
     # non-deterministic behaviour [at least for me, Maurits] has been
     # observed here.
-    meta_type = 'SolrIndex'
+    meta_type = "SolrIndex"
 
     _properties = (
-        {'id': 'solr_uri_static', 'type': 'string', 'mode': 'w',
-            'description':
-            'The Solr URI, for example, "http://localhost:8983/solr". '
-            'You should leave this empty if you set solr_uri_env_var.'},
-        {'id': 'solr_uri_env_var', 'type': 'string', 'mode': 'w',
-            'description':
-            'The name of an environment variable that will provide '
-            'the Solr URI.  Ignored if solr_uri_static is non-empty.'},
-        {'id': 'solr_uri', 'type': 'string', 'mode': '',
-            'description': 'The effective Solr URI (read-only)'},
-        {'id': 'expected_encodings', 'type': 'lines', 'mode': 'w',
-            'description':
-            'The list of encodings to try to decode from before encoding '
-            'to UTF-8 to submit to Solr.'},
-        {'id': 'catalog_name', 'type': 'string', 'mode': 'w',
-            'description':
-            'The name of the catalog this index is attached to.'},
-        )
+        {
+            "id": "solr_uri_static",
+            "type": "string",
+            "mode": "w",
+            "description": 'The Solr URI, for example, "http://localhost:8983/solr". '
+            "You should leave this empty if you set solr_uri_env_var.",
+        },
+        {
+            "id": "solr_uri_env_var",
+            "type": "string",
+            "mode": "w",
+            "description": "The name of an environment variable that will provide "
+            "the Solr URI.  Ignored if solr_uri_static is non-empty.",
+        },
+        {
+            "id": "solr_uri",
+            "type": "string",
+            "mode": "",
+            "description": "The effective Solr URI (read-only)",
+        },
+        {
+            "id": "expected_encodings",
+            "type": "lines",
+            "mode": "w",
+            "description": "The list of encodings to try to decode from before encoding "
+            "to UTF-8 to submit to Solr.",
+        },
+        {
+            "id": "catalog_name",
+            "type": "string",
+            "mode": "w",
+            "description": "The name of the catalog this index is attached to.",
+        },
+    )
 
     manage_options = PropertyManager.manage_options + SimpleItem.manage_options
 
     _v_temp_cm = None  # An ISolrConnectionManager used during initialization
-    solr_uri_static = ''
-    solr_uri_env_var = ''
-    expected_encodings = ['utf-8']
-    catalog_name = 'portal_catalog'
+    solr_uri_static = ""
+    solr_uri_env_var = ""
+    expected_encodings = ["utf-8"]
+    catalog_name = "portal_catalog"
 
-    def __init__(self, id, solr_uri_static='', expected_encodings=None,
-                 catalog_name=None):
+    def __init__(
+        self, id, solr_uri_static="", expected_encodings=None, catalog_name=None
+    ):
         self.id = id
         self.solr_uri_static = solr_uri_static
         if expected_encodings is not None:
@@ -114,9 +139,9 @@ class SolrIndex(PropertyManager, SimpleItem):
             return self.solr_uri_static
         elif self.solr_uri_env_var:
             return os.environ[self.solr_uri_env_var]
-        elif 'solr_uri' in self.__dict__:
+        elif "solr_uri" in self.__dict__:
             # b/w compat
-            return self.__dict__['solr_uri']
+            return self.__dict__["solr_uri"]
         else:
             raise ValueError("No Solr URI provided")
 
@@ -135,7 +160,7 @@ class SolrIndex(PropertyManager, SimpleItem):
                 self._v_temp_cm = manager = ISolrConnectionManager(self)
 
         else:
-            fc = getattr(jar, 'foreign_connections', None)
+            fc = getattr(jar, "foreign_connections", None)
             if fc is None:
                 jar.foreign_connections = fc = {}
 
@@ -147,8 +172,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         return manager
 
     def getIndexSourceNames(self):
-        """Get a sequence of attribute names that are indexed by the index.
-        """
+        """Get a sequence of attribute names that are indexed by the index."""
         if disable_solr:
             return []
 
@@ -170,7 +194,8 @@ class SolrIndex(PropertyManager, SimpleItem):
         cm = self.connection_manager
         uniqueKey = cm.schema.uniqueKey
         response = cm.connection.query(
-            q='%s:"%d"' % (uniqueKey, documentId), fields='*')
+            q='%s:"%d"' % (uniqueKey, documentId), fields="*"
+        )
         results = list(response)
         if results:
             return results[0]
@@ -225,7 +250,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         log.debug("unindexing %d", documentId)
         cm.connection.delete(documentId)
 
-    def _apply_index(self, request, cid=''):
+    def _apply_index(self, request, cid=""):
         """Apply query specified by request, a mapping containing the query.
 
         Returns two objects on success: the resultSet containing the
@@ -238,14 +263,14 @@ class SolrIndex(PropertyManager, SimpleItem):
             return None
 
         cm = self.connection_manager
-        q = []           # List of query texts to pass as "q"
-        queried = []     # List of field names queried
-        stored = []      # List of stored field names
+        q = []  # List of query texts to pass as "q"
+        queried = []  # List of field names queried
+        stored = []  # List of stored field names
         solr_params = {}
 
         # Get the Solr parameters from the catalog query
-        if 'solr_params' in request:
-            solr_params.update(request['solr_params'])
+        if "solr_params" in request:
+            solr_params.update(request["solr_params"])
 
         # Include parameters from field queries
         for field in cm.schema.fields:
@@ -276,32 +301,35 @@ class SolrIndex(PropertyManager, SimpleItem):
         if not solr_params:
             return None
 
-        solr_params['fields'] = cm.schema.uniqueKey
+        solr_params["fields"] = cm.schema.uniqueKey
         # We only add highlighting for any field that is marked as stored.
         # 'queried' returns the list of fields queried,
         # a specific list of names will narrow the list.
         to_highlight = []
-        hfields = solr_params.get('highlight', None)
+        hfields = solr_params.get("highlight", None)
         if hfields and stored:
-            if hfields == 'queried':
-                solr_params['highlight'] = queried
+            if hfields == "queried":
+                solr_params["highlight"] = queried
             for fname in hfields:
                 if fname in stored:
                     to_highlight.append(fname)
                 else:
-                    log.debug("Requested field isn't marked as 'stored', "
-                              "cannot enable highlighting: %s", fname)
-            solr_params['highlight'] = to_highlight
-        if not solr_params.get('q'):
+                    log.debug(
+                        "Requested field isn't marked as 'stored', "
+                        "cannot enable highlighting: %s",
+                        fname,
+                    )
+            solr_params["highlight"] = to_highlight
+        if not solr_params.get("q"):
             # Solr requires a 'q' parameter, so provide an
             # all-inclusive one. If the query is using dismax, then
             # use the 'q.alt' parameter since dismax does not know how
             # to parse '*:*' in the 'q' param.
-            if solr_params.get('defType', '') == 'dismax':
-                solr_params['q.alt'] = '*:*'
-                solr_params['q'] = ''
+            if solr_params.get("defType", "") == "dismax":
+                solr_params["q.alt"] = "*:*"
+                solr_params["q"] = ""
             else:
-                solr_params['q'] = '*:*'
+                solr_params["q"] = "*:*"
 
         # Additional fields can be added into the query above in the
         # field_params check. The 'q' variable cannot be sent to solr
@@ -310,8 +338,8 @@ class SolrIndex(PropertyManager, SimpleItem):
         # we turn it back into a string here.
         #
         # XXX: Should the logic for field_params be changed above?
-        if isinstance(solr_params['q'], list):
-            solr_params['q'] = ' '.join(solr_params['q'])
+        if isinstance(solr_params["q"], list):
+            solr_params["q"] = " ".join(solr_params["q"])
 
         # Decode all strings using list from `expected_encodings`,
         # then transcode to UTF-8
@@ -319,44 +347,50 @@ class SolrIndex(PropertyManager, SimpleItem):
 
         log.debug("querying: %r", solr_params)
         response = cm.connection.query(**transcoded_params)
-        if 'solr_callback' in request:
+        if "solr_callback" in request:
             # Call a function with the Solr response object
-            callback = request['solr_callback']
+            callback = request["solr_callback"]
             callback(response)
 
         # Since highlighting can be either enabled by default in the Solr
         # config, or as a query parameter we just check to see if the
         # response has any highlighting returned.
-        if hasattr(response, 'highlighting'):
+        if hasattr(response, "highlighting"):
             catalog = get_catalog(self, name=self.catalog_name)
             if catalog:
-               hkey = tuple(sorted([(fname, request.get(fname))
-                                    for fname in queried]))
-               if not issubclass(catalog._v_brains, HighlightingBrain) or \
-                  (hasattr(catalog._v_brains, 'highlighting_key') and \
-                   catalog._v_brains.highlighting_key != hkey) or \
-                  (hasattr(catalog._v_brains, 'catalog_name') and \
-                   catalog._v_brains.catalog_name != self.catalog_name):
-                   # We use an inline class here so that the brain has
-                   # enough data to retrieve the stored highlighting data
-                   class myhighlightingbrains(HighlightingBrain):
-                       highlighting_key = hkey
-                       highlighting = response.highlighting
-                   catalog.useBrains(myhighlightingbrains)
-                   log.debug("Creating new custom brain class, hkey: '%s'",
-                             hkey)
-               else:
-                   catalog._v_brains.highlighting = response.highlighting
-                   log.debug("Using existing custom brain class, hkey: '%s'",
-                             hkey)
+                hkey = tuple(sorted([(fname, request.get(fname)) for fname in queried]))
+                if (
+                    not issubclass(catalog._v_brains, HighlightingBrain)
+                    or (
+                        hasattr(catalog._v_brains, "highlighting_key")
+                        and catalog._v_brains.highlighting_key != hkey
+                    )
+                    or (
+                        hasattr(catalog._v_brains, "catalog_name")
+                        and catalog._v_brains.catalog_name != self.catalog_name
+                    )
+                ):
+                    # We use an inline class here so that the brain has
+                    # enough data to retrieve the stored highlighting data
+                    class myhighlightingbrains(HighlightingBrain):
+                        highlighting_key = hkey
+                        highlighting = response.highlighting
+
+                    catalog.useBrains(myhighlightingbrains)
+                    log.debug("Creating new custom brain class, hkey: '%s'", hkey)
+                else:
+                    catalog._v_brains.highlighting = response.highlighting
+                    log.debug("Using existing custom brain class, hkey: '%s'", hkey)
             else:
-                log.debug("Cannot retrieve catalog '%s', highlighting unavailable",
-                          self.catalog_name)
+                log.debug(
+                    "Cannot retrieve catalog '%s', highlighting unavailable",
+                    self.catalog_name,
+                )
 
         uniqueKey = cm.schema.uniqueKey
         result = IIBTree()
         for r in response:
-            result[int(r[uniqueKey])] = int(r.get('score', 0) * 1000)
+            result[int(r[uniqueKey])] = int(r.get("score", 0) * 1000)
 
         return result, queried
 
@@ -397,8 +431,7 @@ class SolrIndex(PropertyManager, SimpleItem):
             if decoded_val is None:
                 # Our escape hatch; if none of the expected encodings
                 # work, we fall back to UTF8 and replace characters
-                decoded_val = force_unicode(
-                    val, encoding='utf-8', errors='replace')
+                decoded_val = force_unicode(val, encoding="utf-8", errors="replace")
             return decoded_val
         else:
             return val
@@ -415,7 +448,7 @@ class SolrIndex(PropertyManager, SimpleItem):
             return 0
 
         cm = self.connection_manager
-        response = cm.connection.query(q='*:*', rows='0')
+        response = cm.connection.query(q="*:*", rows="0")
         return int(response.numFound)
 
     def clear(self):
@@ -425,11 +458,10 @@ class SolrIndex(PropertyManager, SimpleItem):
 
         cm = self.connection_manager
         cm.set_changed()
-        cm.connection.delete_query('*:*')
+        cm.connection.delete_query("*:*")
 
 
 class NoRollbackSavepoint:
-
     def __init__(self, datamanager):
         self.datamanager = datamanager
 
@@ -439,7 +471,6 @@ class NoRollbackSavepoint:
 
 @implementer(ISolrConnectionManager, IDataManager)
 class SolrConnectionManager:
-
     def __init__(self, solr_index, connection_factory=SolrConnection):
         self.solr_uri = solr_index.solr_uri
         self._joined = False
@@ -498,12 +529,16 @@ class SolrConnectionManager:
     def savepoint(self, optimistic=False):
         return NoRollbackSavepoint(self)
 
-def force_unicode(s, encoding='utf-8', errors='strict'):
+
+def force_unicode(s, encoding="utf-8", errors="strict"):
     if isinstance(s, str):
         return s
     try:
-        if not isinstance(s, (str, bytes),):
-            if hasattr(s, '__unicode__'):
+        if not isinstance(
+            s,
+            (str, bytes),
+        ):
+            if hasattr(s, "__unicode__"):
                 s = str(s)
             else:
                 try:
@@ -517,28 +552,27 @@ def force_unicode(s, encoding='utf-8', errors='strict'):
                     # without raising a further exception. We do an
                     # approximation to what the Exception's standard str()
                     # output should be.
-                    s = ' '.join([force_unicode(arg, encoding, errors)
-                                  for arg in s])
+                    s = " ".join([force_unicode(arg, encoding, errors) for arg in s])
         elif isinstance(s, bytes):
             # Note: We use .decode() here, instead of unicode(s, encoding,
             # errors), so that if s is a SafeString, it ends up being a
             # SafeUnicode at the end.
             s = s.decode(encoding, errors)
     except UnicodeDecodeError as e:
-       # If we get to here, the caller has passed in an Exception
-       # subclass populated with non-ASCII bytestring data without a
-       # working unicode method. Try to handle this without raising a
-       # further exception by individually forcing the exception args
-       # to unicode.
-       s = ' '.join([force_unicode(arg, encoding, 'replace') for arg in s])
+        # If we get to here, the caller has passed in an Exception
+        # subclass populated with non-ASCII bytestring data without a
+        # working unicode method. Try to handle this without raising a
+        # further exception by individually forcing the exception args
+        # to unicode.
+        s = " ".join([force_unicode(arg, encoding, "replace") for arg in s])
 
     return s
 
 
 class HighlightingBrain(AbstractCatalogBrain):
-    highlighting = None     # Data returned by Solr, indexed by RID
-    highlighting_key = None # Submitted search terms, to see if we need to
-                            # rebuild the custom class
+    highlighting = None  # Data returned by Solr, indexed by RID
+    highlighting_key = None  # Submitted search terms, to see if we need to
+    # rebuild the custom class
 
     def getHighlighting(self, fields=None, combine_fields=True):
         """This method retrieves the stored highlighting data for a given
@@ -559,14 +593,18 @@ class HighlightingBrain(AbstractCatalogBrain):
         for fname, fhighlights in list(brain_highlights.items()):
             if fname not in highlighting:
                 highlighting[fname] = []
-            if isinstance(fhighlights, (tuple,list)):
+            if isinstance(fhighlights, (tuple, list)):
                 highlighting[fname].extend(fhighlights)
             else:
                 highlighting[fname].append(fhighlights)
 
-        results = dict([(fname, fhighlights)
-                        for fname, fhighlights in list(highlighting.items())
-                            if fname in fields])
+        results = dict(
+            [
+                (fname, fhighlights)
+                for fname, fhighlights in list(highlighting.items())
+                if fname in fields
+            ]
+        )
 
         if combine_fields:
             combined = []
@@ -579,18 +617,20 @@ class HighlightingBrain(AbstractCatalogBrain):
 
 def get_catalog(obj, name=None):
     if name is None:
-        name = 'portal_catalog'
+        name = "portal_catalog"
     catalog = getToolByName(obj, name, False)
     if not catalog:
         return None
 
-    if hasattr(catalog, '_catalog'):
+    if hasattr(catalog, "_catalog"):
         catalog = catalog._catalog
     return catalog
 
+
 def get_solr_indexes(catalog):
     # Use getIndex to ensure the object is wrapped correctly
-    return [catalog.getIndex(name)
-            for name, idx in list(catalog.indexes.items())
-                if ISolrIndex.providedBy(idx)]
-
+    return [
+        catalog.getIndex(name)
+        for name, idx in list(catalog.indexes.items())
+        if ISolrIndex.providedBy(idx)
+    ]

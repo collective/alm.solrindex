@@ -4,65 +4,65 @@
     xmlns:five="http://namespaces.zope.org/five"
     >
 
-<include package="Products.CMFCore" />
+  <include package="Products.CMFCore" />
 
-<!-- GenericSetup integration -->
-<include file="profiles.zcml" />
-<adapter factory=".exportimport.SolrIndexNodeAdapter"/>
+  <!-- GenericSetup integration -->
+  <include file="profiles.zcml" />
+  <adapter factory=".exportimport.SolrIndexNodeAdapter" />
 
 
-<adapter
-    for=".interfaces.ISolrIndex"
-    factory=".index.SolrConnectionManager"
-    provides=".interfaces.ISolrConnectionManager"
-    />
+  <adapter
+      factory=".index.SolrConnectionManager"
+      provides=".interfaces.ISolrConnectionManager"
+      for=".interfaces.ISolrIndex"
+      />
 
-<utility
-    factory=".handlers.DefaultFieldHandler"
-    provides=".interfaces.ISolrFieldHandler"
-    />
+  <utility
+      factory=".handlers.DefaultFieldHandler"
+      provides=".interfaces.ISolrFieldHandler"
+      />
 
-<!-- Use BoolFieldHandler for fields of Java class "solr.BoolField" -->
-<utility
-    factory=".handlers.BoolFieldHandler"
-    provides=".interfaces.ISolrFieldHandler"
-    name="solr.BoolField"
-    />
+  <!-- Use BoolFieldHandler for fields of Java class "solr.BoolField" -->
+  <utility
+      factory=".handlers.BoolFieldHandler"
+      provides=".interfaces.ISolrFieldHandler"
+      name="solr.BoolField"
+      />
 
-<!-- Use DateFieldHandler for fields of Java class "solr.DateField" -->
-<utility
-    factory=".handlers.DateFieldHandler"
-    provides=".interfaces.ISolrFieldHandler"
-    name="solr.DateField"
-    />
+  <!-- Use DateFieldHandler for fields of Java class "solr.DateField" -->
+  <utility
+      factory=".handlers.DateFieldHandler"
+      provides=".interfaces.ISolrFieldHandler"
+      name="solr.DateField"
+      />
 
-<utility
-    factory=".handlers.DateFieldHandler"
-    provides=".interfaces.ISolrFieldHandler"
-    name="solr.TrieDateField"
-    />
+  <utility
+      factory=".handlers.DateFieldHandler"
+      provides=".interfaces.ISolrFieldHandler"
+      name="solr.TrieDateField"
+      />
 
-<!-- Use TextFieldHandler for fields of Java class "solr.TextField" -->
-<utility
-    factory=".handlers.TextFieldHandler"
-    provides=".interfaces.ISolrFieldHandler"
-    name="solr.TextField"
-    />
+  <!-- Use TextFieldHandler for fields of Java class "solr.TextField" -->
+  <utility
+      factory=".handlers.TextFieldHandler"
+      provides=".interfaces.ISolrFieldHandler"
+      name="solr.TextField"
+      />
 
-<five:registerClass
-    class=".index.SolrIndex"
-    meta_type="SolrIndex"
-    addview="addSolrIndex.html"
-    permission="cmf.ManagePortal"
-    global="False"
-    />
+  <five:registerClass
+      class=".index.SolrIndex"
+      permission="cmf.ManagePortal"
+      addview="addSolrIndex.html"
+      global="False"
+      meta_type="SolrIndex"
+      />
 
-<browser:page
-    for="zope.browser.interfaces.IAdding"
-    name="addSolrIndex.html"
-    template="addSolrIndex.pt"
-    class=".browser.SolrIndexAddView"
-    permission="cmf.ManagePortal"
-    />
+  <browser:page
+      name="addSolrIndex.html"
+      for="zope.browser.interfaces.IAdding"
+      class=".browser.SolrIndexAddView"
+      template="addSolrIndex.pt"
+      permission="cmf.ManagePortal"
+      />
 
 </configure>

@@ -1,15 +1,18 @@
 from Products.GenericSetup.interfaces import INode
-from Products.GenericSetup.testing import NodeAdapterTestCase
 from Products.GenericSetup.testing import DummySetupEnviron
 from Products.GenericSetup.testing import ExportImportZCMLLayer
+from Products.GenericSetup.testing import NodeAdapterTestCase
 from xml.dom.minidom import parseString
 from Zope2.App import zcml
 from zope.component import getMultiAdapter
+
 import unittest
 
-_SOLR_URI = 'http://localhost:8988/solr'
 
-_SOLRINDEX_XML = """\
+_SOLR_URI = "http://localhost:8988/solr"
+
+_SOLRINDEX_XML = (
+    """\
 <index name="Solr" meta_type="SolrIndex">
  <property name="solr_uri_static">%s</property>
  <property name="solr_uri_env_var"></property>
@@ -18,16 +21,18 @@ _SOLRINDEX_XML = """\
  </property>
  <property name="catalog_name">portal_catalog</property>
 </index>
-""" % _SOLR_URI
+"""
+    % _SOLR_URI
+)
 
 
 class SolrExportImportZCMLLayer(ExportImportZCMLLayer):
-
     @classmethod
     def setUp(cls):
         import alm.solrindex
+
         ExportImportZCMLLayer.setUp()
-        zcml.load_config('configure.zcml', alm.solrindex)
+        zcml.load_config("configure.zcml", alm.solrindex)
 
 
 class SolrIndexNodeAdapterTests(NodeAdapterTestCase, unittest.TestCase):
@@ -36,17 +41,20 @@ class SolrIndexNodeAdapterTests(NodeAdapterTestCase, unittest.TestCase):
 
     def _getTargetClass(self):
         from alm.solrindex.exportimport import SolrIndexNodeAdapter
+
         return SolrIndexNodeAdapter
 
     def setUp(self):
-        import alm.solrindex
         from alm.solrindex.index import SolrIndex
+
+        import alm.solrindex
+
         # Needed to make tests work on Plone 5.2
         # Might not be the right approach: I'm no expert
         ExportImportZCMLLayer.setUp()
-        zcml.load_config('configure.zcml', alm.solrindex)
+        zcml.load_config("configure.zcml", alm.solrindex)
 
-        self._obj = SolrIndex('Solr', _SOLR_URI)
+        self._obj = SolrIndex("Solr", _SOLR_URI)
         self._XML = _SOLRINDEX_XML
 
     def test_node_get(self):

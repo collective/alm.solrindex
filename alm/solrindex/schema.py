@@ -2,17 +2,20 @@
 from alm.solrindex.interfaces import ISolrField
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.interfaces import ISolrSchema
+
+
 try:
     from elementtree.ElementTree import parse
 except (ImportError, AttributeError):
     from lxml.etree import parse
 
+from urllib import error as urllib_error
+from urllib import request as urllib_request
 from zope.component import getUtility
 from zope.component import queryUtility
 from zope.interface import implementer
+
 import logging
-from urllib import request as urllib_request
-from urllib import error as urllib_error
 
 
 log = logging.getLogger(__name__)
@@ -35,11 +38,13 @@ class SolrSchema:
 
     def download_from(self, solr_uri):
         """Get schema.xml from a running Solr instance"""
-        schema_uris = ('%s/admin/file/?file=schema.xml',         # solr 1.3
-                       '%s/admin/get-file.jsp?file=schema.xml')  # solr 1.2
+        schema_uris = (
+            "%s/admin/file/?file=schema.xml",  # solr 1.3
+            "%s/admin/get-file.jsp?file=schema.xml",
+        )  # solr 1.2
         for i, uri in enumerate(schema_uris):
             uri = uri % solr_uri
-            log.debug('getting schema from %s', uri)
+            log.debug("getting schema from %s", uri)
             try:
                 f = urllib_request.urlopen(uri)
             except urllib_error.URLError:
@@ -53,20 +58,20 @@ class SolrSchema:
         """Initialize this instance from a Solr schema.xml"""
         tree = parse(f)
 
-        e = tree.find('uniqueKey')
+        e = tree.find("uniqueKey")
         if e is not None:
             self.uniqueKey = e.text.strip()
 
-        e = tree.find('defaultSearchField')
+        e = tree.find("defaultSearchField")
         if e is not None:
             self.defaultSearchField = e.text.strip()
 
         types = {}
-        for e in tree.findall('types/fieldType'):
-            types[e.attrib['name']] = e
+        for e in tree.findall("types/fieldType"):
+            types[e.attrib["name"]] = e
 
-        for e in tree.findall('fields/field'):
-            t = types[e.attrib['type']]
+        for e in tree.findall("fields/field"):
+            t = types[e.attrib["type"]]
             self.fields.append(SolrField(e, t))
 
 
@@ -74,23 +79,25 @@ class SolrSchema:
 class SolrField:
 
     _boolean_attrs = (
-        'indexed', 'stored', 'required', 'multiValued',
-        )
+        "indexed",
+        "stored",
+        "required",
+        "multiValued",
+    )
 
     def __init__(self, elem, fieldType):
-        self.name = elem.attrib['name']
-        self.type = elem.attrib['type']
-        self.java_class = fieldType.attrib['class']
+        self.name = elem.attrib["name"]
+        self.type = elem.attrib["type"]
+        self.java_class = fieldType.attrib["class"]
         for attr in self._boolean_attrs:
             value = elem.get(attr)
             if value is not None:
-                value = {'true': True, 'false': False}[value.lower()]
+                value = {"true": True, "false": False}[value.lower()]
             setattr(self, attr, value)
 
         handler = queryUtility(ISolrFieldHandler, name=self.name)
         if handler is None:
-            handler = queryUtility(
-                ISolrFieldHandler, name=self.java_class)
+            handler = queryUtility(ISolrFieldHandler, name=self.java_class)
             if handler is None:
                 handler = getUtility(ISolrFieldHandler)
         self.handler = handler

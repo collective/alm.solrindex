@@ -279,22 +279,27 @@ Enter a raw query, without processing the returned HTML contents.
     >>> print c.raw_query(q='id:[* TO *]', wt='python', rows='10')
 
 """
-import cgi
-import sys
-import socket
-import http.client
-import codecs
-import urllib.request, urllib.parse, urllib.error
-import datetime
 from io import StringIO
+from xml.dom.minidom import parseString
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
-from xml.sax.saxutils import escape, quoteattr
-from xml.dom.minidom import parseString
+from xml.sax.saxutils import escape
+from xml.sax.saxutils import quoteattr
+
+import cgi
+import codecs
+import datetime
+import http.client
+import socket
+import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+
 
 __version__ = "0.5"
 
-__all__ = ['SolrException', 'SolrConnection', 'Response']
+__all__ = ["SolrException", "SolrConnection", "Response"]
 
 _python_version = sys.version_info[0] + (sys.version_info[1] / 10.0)
 
@@ -304,18 +309,22 @@ _python_version = sys.version_info[0] + (sys.version_info[1] / 10.0)
 
 
 class SolrException(Exception):
-    """ An exception thrown by solr connections """
+    """An exception thrown by solr connections"""
+
     def __init__(self, httpcode, reason=None, body=None):
         self.httpcode = httpcode
         self.reason = reason
         self.body = body
 
     def __repr__(self):
-        return 'HTTP code=%s, Reason=%s, body=%s' % (
-                    self.httpcode, self.reason, self.body)
+        return "HTTP code=%s, Reason=%s, body=%s" % (
+            self.httpcode,
+            self.reason,
+            self.body,
+        )
 
     def __str__(self):
-        return 'HTTP code=%s, reason=%s' % (self.httpcode, self.reason)
+        return "HTTP code=%s, reason=%s" % (self.httpcode, self.reason)
 
 
 # ===================================================================
@@ -329,38 +338,41 @@ class SolrConnection:
     (though 2.1 will likely work.)
     """
 
-    def __init__(self, url,
-                 persistent=True,
-                 timeout=None,
-                 ssl_key=None,
-                 ssl_cert=None,
-                 post_headers={}):
+    def __init__(
+        self,
+        url,
+        persistent=True,
+        timeout=None,
+        ssl_key=None,
+        ssl_cert=None,
+        post_headers={},
+    ):
 
         """
-            url -- URI pointing to the SOLR instance. Examples:
+        url -- URI pointing to the SOLR instance. Examples:
 
-                http://localhost:8080/solr
-                https://solr-server/solr
+            http://localhost:8080/solr
+            https://solr-server/solr
 
-                Your python install must be compiled with SSL support for the
-                https:// schemes to work. (Most pre-packaged pythons are.)
+            Your python install must be compiled with SSL support for the
+            https:// schemes to work. (Most pre-packaged pythons are.)
 
-            persistent -- Keep a persistent HTTP connection open.
-                Defaults to true
+        persistent -- Keep a persistent HTTP connection open.
+            Defaults to true
 
-            timeout -- Timeout, in seconds, for the server to response.
-                By default, use the python default timeout (of none?)
+        timeout -- Timeout, in seconds, for the server to response.
+            By default, use the python default timeout (of none?)
 
-            ssl_key, ssl_cert -- If using client-side key files for
-                SSL authentication,  these should be, respectively,
-                your PEM key file and certificate file
+        ssl_key, ssl_cert -- If using client-side key files for
+            SSL authentication,  these should be, respectively,
+            your PEM key file and certificate file
 
         """
 
-        self.scheme, self.host, self.path = urllib.parse.urlparse(url, 'http')[:3]
+        self.scheme, self.host, self.path = urllib.parse.urlparse(url, "http")[:3]
         self.url = url
 
-        assert self.scheme in ('http', 'https')
+        assert self.scheme in ("http", "https")
 
         self.persistent = persistent
         self.reconnects = 0
@@ -371,47 +383,56 @@ class SolrConnection:
         kwargs = {}
 
         if self.timeout and _python_version >= 2.6 and _python_version < 3:
-            kwargs['timeout'] = self.timeout
+            kwargs["timeout"] = self.timeout
 
-        if self.scheme == 'https':
-            self.conn = http.client.HTTPSConnection(self.host,
-                   key_file=ssl_key, cert_file=ssl_cert, **kwargs)
+        if self.scheme == "https":
+            self.conn = http.client.HTTPSConnection(
+                self.host, key_file=ssl_key, cert_file=ssl_cert, **kwargs
+            )
         else:
             self.conn = http.client.HTTPConnection(self.host, **kwargs)
 
         # this is int, not bool!
         self.batch_cnt = 0
         self.response_version = 2.2
-        self.encoder = codecs.getencoder('utf-8')
+        self.encoder = codecs.getencoder("utf-8")
 
         # Responses from Solr will always be in UTF-8
-        self.decoder = codecs.getdecoder('utf-8')
+        self.decoder = codecs.getdecoder("utf-8")
 
         # Set timeout, if applicable.
         if self.timeout and _python_version < 2.6:
             self.conn.connect()
-            if self.scheme == 'http':
+            if self.scheme == "http":
                 self.conn.sock.settimeout(self.timeout)
-            elif self.scheme == 'https':
+            elif self.scheme == "https":
                 self.conn.sock.sock.settimeout(self.timeout)
 
-        self.xmlheaders = {'Content-Type': 'text/xml; charset=utf-8'}
+        self.xmlheaders = {"Content-Type": "text/xml; charset=utf-8"}
         self.xmlheaders.update(post_headers)
         if not self.persistent:
-            self.xmlheaders['Connection'] = 'close'
+            self.xmlheaders["Connection"] = "close"
 
         self.form_headers = {
-                'Content-Type':
-                'application/x-www-form-urlencoded; charset=utf-8'}
+            "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
+        }
 
         if not self.persistent:
-            self.form_headers['Connection'] = 'close'
+            self.form_headers["Connection"] = "close"
 
     def close(self):
         self.conn.close()
 
-    def query(self, q, fields=None, highlight=None,
-              score=True, sort=None, sort_order="asc", **params):
+    def query(
+        self,
+        q,
+        fields=None,
+        highlight=None,
+        score=True,
+        sort=None,
+        sort_order="asc",
+        **params,
+    ):
         """
         q is the query string.
 
@@ -447,58 +468,57 @@ class SolrConnection:
         """
 
         # Clean up optional parameters to match SOLR spec.
-        params = dict([(key.replace('_', '.'), value)
-                      for key, value in list(params.items())])
+        params = dict(
+            [(key.replace("_", "."), value) for key, value in list(params.items())]
+        )
 
         if highlight:
-            params['hl'] = 'true'
+            params["hl"] = "true"
             if not isinstance(highlight, (bool, int, float)):
                 if not isinstance(highlight, str):
                     highlight = ",".join(highlight)
-                params['hl.fl'] = highlight
+                params["hl.fl"] = highlight
             else:
                 if not fields:
-                    raise ValueError(
-                        "highlight is True and no fields were given")
+                    raise ValueError("highlight is True and no fields were given")
                 elif isinstance(fields, str):
-                    params['hl.fl'] = [fields]
+                    params["hl.fl"] = [fields]
                 else:
-                    params['hl.fl'] = ",".join(fields)
+                    params["hl.fl"] = ",".join(fields)
 
         if q is not None:
-            params['q'] = q
+            params["q"] = q
 
         if fields:
             if not isinstance(fields, str):
                 fields = ",".join(fields)
         if not fields:
-            fields = '*'
+            fields = "*"
 
         if sort:
             if not sort_order or sort_order not in ("asc", "desc"):
                 raise ValueError("sort_order must be 'asc' or 'desc'")
             if not isinstance(sort, str):
                 sort = ",".join(sort)
-            params['sort'] = "%s %s" % (sort, sort_order)
+            params["sort"] = "%s %s" % (sort, sort_order)
 
-        if score and not 'score' in fields.split(','):
-            fields += ',score'
+        if score and not "score" in fields.split(","):
+            fields += ",score"
 
-        params['fl'] = fields
-        params['version'] = self.response_version
-        params['wt'] = 'standard'
+        params["fl"] = fields
+        params["version"] = self.response_version
+        params["wt"] = "standard"
 
         request = urllib.parse.urlencode(params, doseq=True)
 
         try:
-            rsp = self._post(self.path + '/select',
-                              request, self.form_headers)
+            rsp = self._post(self.path + "/select", request, self.form_headers)
             # If we pass in rsp directly, instead of using rsp.read())
             # and creating a StringIO, then Persistence breaks with
             # an internal python error.
             _, params = cgi.parse_header(rsp.getheader("Content-type", ""))
             xml = StringIO(rsp.read().decode(params.get("charset", "UTF-8")))
-            data = parse_query_response(xml,  params=params, connection=self)
+            data = parse_query_response(xml, params=params, connection=self)
 
         finally:
             if not self.persistent:
@@ -539,15 +559,14 @@ class SolrConnection:
         """
         batch_cnt = self.batch_cnt - 1
         if batch_cnt < 0:
-            raise SolrException(
-                "end_batch called without a corresponding begin_batch")
+            raise SolrException("end_batch called without a corresponding begin_batch")
 
         self.batch_cnt = batch_cnt
         if batch_cnt:
             return False
 
         if commit:
-            self.__batch_queue.append('<commit/>')
+            self.__batch_queue.append("<commit/>")
 
         return self._update("".join(self.__batch_queue))
 
@@ -555,7 +574,7 @@ class SolrConnection:
         """
         Delete a specific document by id.
         """
-        xstr = u'<delete><id>%s</id></delete>' % escape(str(id))
+        xstr = "<delete><id>%s</id></delete>" % escape(str(id))
         return self._update(xstr)
 
     def delete_many(self, ids):
@@ -568,7 +587,7 @@ class SolrConnection:
         """
         Delete all documents returned by a query.
         """
-        xstr = u'<delete><query>%s</query></delete>' % escape(query)
+        xstr = "<delete><query>%s</query></delete>" % escape(query)
         return self._update(xstr)
 
     def add(self, _commit=False, **fields):
@@ -579,10 +598,10 @@ class SolrConnection:
         Example:
             connection.add(id="mydoc", author="Me")
         """
-        lst = [u'<add>']
+        lst = ["<add>"]
         self.__add(lst, fields)
-        lst.append(u'</add>')
-        xstr = ''.join(lst)
+        lst.append("</add>")
+        xstr = "".join(lst)
         if not _commit:
             return self._update(xstr)
         else:
@@ -596,11 +615,11 @@ class SolrConnection:
         docs -- a list of dicts, where each dict is a document to add
             to SOLR.
         """
-        lst = [u'<add>']
+        lst = ["<add>"]
         for doc in docs:
             self.__add(lst, doc)
-        lst.append(u'</add>')
-        xstr = ''.join(lst)
+        lst.append("</add>")
+        xstr = "".join(lst)
         if not _commit:
             return self._update(xstr)
         else:
@@ -618,16 +637,20 @@ class SolrConnection:
             else:
                 options = 'waitSearcher="false"'
         else:
-            options = ''
+            options = ""
 
         if _optimize:
-            xstr = u'<optimize %s/>' % options
+            xstr = "<optimize %s/>" % options
         else:
-            xstr = u'<commit %s/>' % options
+            xstr = "<commit %s/>" % options
 
         return self._update(xstr)
 
-    def optimize(self, wait_flush=True, wait_searcher=True, ):
+    def optimize(
+        self,
+        wait_flush=True,
+        wait_searcher=True,
+    ):
         """
         Issue an optimize command to the SOLR server.
         """
@@ -643,14 +666,14 @@ class SolrConnection:
         """
 
         # Clean up optional parameters to match SOLR spec.
-        params = dict([(key.replace('_', '.'), value)
-                       for key, value in list(params.items())])
+        params = dict(
+            [(key.replace("_", "."), value) for key, value in list(params.items())]
+        )
 
         request = urllib.parse.urlencode(params, doseq=True)
 
         try:
-            rsp = self._post(self.path + '/select',
-                              request, self.form_headers)
+            rsp = self._post(self.path + "/select", request, self.form_headers)
             data = rsp.read()
         finally:
             if not self.persistent:
@@ -666,8 +689,7 @@ class SolrConnection:
             return
 
         try:
-            rsp = self._post(self.path + '/update',
-                              request, self.xmlheaders)
+            rsp = self._post(self.path + "/update", request, self.xmlheaders)
             data_buffer = rsp.read()
         finally:
             if not self.persistent:
@@ -676,18 +698,19 @@ class SolrConnection:
 
         # Detect old-style error response (HTTP response code
         # of 200 with a non-zero status.
-        if data.startswith('<result status="') and \
-           not data.startswith('<result status="0"'):
+        if data.startswith('<result status="') and not data.startswith(
+            '<result status="0"'
+        ):
             data = self.decoder(data)[0]
             parsed = parseString(data)
-            status = parsed.documentElement.getAttribute('status')
+            status = parsed.documentElement.getAttribute("status")
             if status != 0:
                 reason = parsed.documentElement.firstChild.nodeValue
                 raise SolrException(rsp.status, reason)
         return data
 
     def __add(self, lst, fields):
-        lst.append(u'<doc>')
+        lst.append("<doc>")
         for field, value in list(fields.items()):
             # Handle multi-valued fields if values
             # is passed in as a list/tuple
@@ -703,45 +726,48 @@ class SolrConnection:
                 # Do some basic data conversion
                 if isinstance(value, datetime.date):
                     value = datetime.datetime.combine(
-                        value,
-                        datetime.time(tzinfo=UTC()))
+                        value, datetime.time(tzinfo=UTC())
+                    )
                 if isinstance(value, datetime.datetime):
                     value = utc_to_string(value)
                 elif isinstance(value, bool):
-                    value = value and 'true' or 'false'
-                lst.append('<field name=%s>%s</field>' % (
-                    (quoteattr(field),
-                    escape(str(value)))))
-        lst.append('</doc>')
+                    value = value and "true" or "false"
+                lst.append(
+                    "<field name=%s>%s</field>"
+                    % ((quoteattr(field), escape(str(value))))
+                )
+        lst.append("</doc>")
 
     def __repr__(self):
-        return ('<SolrConnection (url=%s, '
-                'persistent=%s, post_headers=%s, reconnects=%s)>') % (
-            self.url, self.persistent,
-            self.xmlheaders, self.reconnects)
+        return (
+            "<SolrConnection (url=%s, "
+            "persistent=%s, post_headers=%s, reconnects=%s)>"
+        ) % (self.url, self.persistent, self.xmlheaders, self.reconnects)
 
     def _reconnect(self):
         self.reconnects += 1
         self.close()
         self.conn.connect()
         if self.timeout and _python_version < 2.6:
-            if self.scheme == 'http':
+            if self.scheme == "http":
                 self.conn.sock.settimeout(self.timeout)
-            elif self.scheme == 'https':
+            elif self.scheme == "https":
                 self.conn.sock.sock.settimeout(self.timeout)
 
     def _post(self, url, body, headers):
         attempts = 2  # allow up to 2 attempts
         while attempts:
             try:
-                self.conn.request('POST', url, body.encode('UTF-8'), headers)
+                self.conn.request("POST", url, body.encode("UTF-8"), headers)
                 return check_response_status(self.conn.getresponse())
-            except (socket.error,
-                    http.client.ImproperConnectionState,
-                    http.client.BadStatusLine):
-                    # We include BadStatusLine as they are spurious
-                    # and may randomly happen on an otherwise fine
-                    # SOLR connection (though not often)
+            except (
+                socket.error,
+                http.client.ImproperConnectionState,
+                http.client.BadStatusLine,
+            ):
+                # We include BadStatusLine as they are spurious
+                # and may randomly happen on an otherwise fine
+                # SOLR connection (though not often)
                 self._reconnect()
                 attempts -= 1
                 if not attempts:
@@ -762,6 +788,7 @@ class Response:
           results -- a list of matching documents. Each list item will
               be a dict.
     """
+
     def __init__(self, connection):
         # These are set in ResponseContentHandler.endElement()
         self.header = {}
@@ -797,9 +824,9 @@ class Response:
 
         start += len(self.results)
         params = dict(self._params)
-        params['start'] = start
-        q = params['q']
-        del params['q']
+        params["start"] = start
+        q = params["q"]
+        del params["q"]
         return self._connection.query(q, **params)
 
     def previous_batch(self):
@@ -814,13 +841,13 @@ class Response:
         if not start:
             return None
 
-        rows = int(self.header.get('rows', len(self.results)))
+        rows = int(self.header.get("rows", len(self.results)))
         start = max(0, start - rows)
         params = dict(self._params)
-        params['start'] = start
-        params['rows'] = rows
-        q = params['q']
-        del params['q']
+        params["start"] = start
+        params["rows"] = rows
+        q = params["q"]
+        del params["q"]
         return self._connection.query(q, **params)
 
 
@@ -849,16 +876,17 @@ class ResponseContentHandler(ContentHandler):
     ContentHandler for the XML results of a /select call.
     (Versions 2.2 (and possibly 2.1))
     """
+
     def __init__(self):
         self.stack = [Node(None, {})]
         self.in_tree = False
 
     def startElement(self, name, attrs):
         if not self.in_tree:
-            if name != 'response':
+            if name != "response":
                 raise SolrException(
-                    "Unknown XML response from server: <%s ..." % (
-                        name))
+                    "Unknown XML response from server: <%s ..." % (name)
+                )
             self.in_tree = True
 
         element = Node(name, attrs)
@@ -878,65 +906,61 @@ class ResponseContentHandler(ContentHandler):
         name = node.name
         value = "".join(node.chars)
 
-        if name == 'int':
+        if name == "int":
             node.final = int(value.strip())
 
-        elif name == 'str':
+        elif name == "str":
             node.final = value
 
-        elif name == 'null':
+        elif name == "null":
             node.final = None
 
-        elif name == 'long':
+        elif name == "long":
             node.final = int(value.strip())
 
-        elif name == 'bool':
-            node.final = value.strip().lower().startswith('t')
+        elif name == "bool":
+            node.final = value.strip().lower().startswith("t")
 
-        elif name == 'date':
+        elif name == "date":
             node.final = utc_from_string(value.strip())
 
-        elif name in ('float', 'double', 'status', 'QTime'):
+        elif name in ("float", "double", "status", "QTime"):
             node.final = float(value.strip())
 
-        elif name == 'response':
+        elif name == "response":
             node.final = response = Response(self)
             for child in node.children:
-                name = child.attrs.get('name', child.name)
-                if name == 'responseHeader':
-                    name = 'header'
-                elif child.name == 'result':
-                    name = 'results'
+                name = child.attrs.get("name", child.name)
+                if name == "responseHeader":
+                    name = "header"
+                elif child.name == "result":
+                    name = "results"
                     for attr_name in child.attrs.getNames():
                         # We already know it is a response
                         if attr_name != "name":
-                            setattr(
-                                response,
-                                attr_name,
-                                child.attrs.get(attr_name))
+                            setattr(response, attr_name, child.attrs.get(attr_name))
 
                 setattr(response, name, child.final)
 
-        elif name in ('lst', 'doc'):
+        elif name in ("lst", "doc"):
             # Represent these with a dict
             node.final = dict(
-                    [(cnode.attrs['name'], cnode.final)
-                        for cnode in node.children])
+                [(cnode.attrs["name"], cnode.final) for cnode in node.children]
+            )
 
-        elif name in ('arr',):
+        elif name in ("arr",):
             node.final = [cnode.final for cnode in node.children]
 
-        elif name == 'result':
+        elif name == "result":
             node.final = Results([cnode.final for cnode in node.children])
 
-        elif name in ('responseHeader',):
-            node.final = dict([(cnode.name, cnode.final)
-                        for cnode in node.children])
+        elif name in ("responseHeader",):
+            node.final = dict([(cnode.name, cnode.final) for cnode in node.children])
         else:
             raise SolrException("Unknown tag: %s" % name)
 
         for attr, val in list(node.attrs.items()):
-            if attr != 'name':
+            if attr != "name":
                 setattr(node.final, attr, val)
 
 
@@ -944,6 +968,7 @@ class Results(list):
     """
     Convenience class containing <result> items
     """
+
     pass
 
 
@@ -951,6 +976,7 @@ class Node:
     """
     A temporary object used in XML processing. Not seen by end user.
     """
+
     def __init__(self, name, attrs):
         """
         Final will eventually be the "final" representation of
@@ -966,8 +992,10 @@ class Node:
         return '<%s val="%s" %s>' % (
             self.name,
             "".join(self.chars).strip(),
-            ' '.join(['%s="%s"' % (attr, val)
-                            for attr, val in list(self.attrs.items())]))
+            " ".join(
+                ['%s="%s"' % (attr, val) for attr, val in list(self.attrs.items())]
+            ),
+        )
 
 
 # ===================================================================
@@ -992,6 +1020,7 @@ class UTC(datetime.tzinfo):
     """
     UTC timezone.
     """
+
     def utcoffset(self, dt):
         return datetime.timedelta(0)
 
@@ -1010,9 +1039,9 @@ def utc_to_string(value):
     Convert datetimes to the subset of ISO 8601 that SOLR expects.
     """
     value = value.astimezone(utc).isoformat()
-    if '+' in value:
-        value = value.split('+')[0]
-    value += 'Z'
+    if "+" in value:
+        value = value.split("+")[0]
+    value += "Z"
     return value
 
 
@@ -1023,7 +1052,7 @@ def utc_from_string(value):
     onle the specific format SOLR promises to generate.
     """
     try:
-        if not value.endswith('Z') and value[10] == 'T':
+        if not value.endswith("Z") and value[10] == "T":
             raise ValueError(value)
         year = int(value[0:4])
         month = int(value[5:7])
@@ -1032,7 +1061,8 @@ def utc_from_string(value):
         minute = int(value[14:16])
         microseconds = int(float(value[17:-1]) * 1000000.0)
         second, microsecond = divmod(microseconds, 1000000)
-        return datetime.datetime(year, month, day, hour,
-            minute, second, microsecond, utc)
+        return datetime.datetime(
+            year, month, day, hour, minute, second, microsecond, utc
+        )
     except ValueError:
         raise ValueError("'%s' is not a valid ISO 8601 SOLR date" % value)

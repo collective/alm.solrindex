@@ -7,15 +7,17 @@ from zope.component import getUtility
 from zope.component.interfaces import ComponentLookupError
 
 
-security = ModuleSecurityInfo( 'alm.solrindex.utils' )
+security = ModuleSecurityInfo("alm.solrindex.utils")
 _marker = []  # Create a new marker object.
 _tool_interface_registry = {}
 
 
-security.declarePublic('getToolByName')
+security.declarePublic("getToolByName")
+
+
 def getToolByName(obj, name, default=_marker):
 
-    """ Get the tool, 'toolname', by acquiring it.
+    """Get the tool, 'toolname', by acquiring it.
 
     o Application code should use this method, rather than simply
       acquiring the tool by name, to ease forward migration (e.g.,
@@ -29,9 +31,11 @@ def getToolByName(obj, name, default=_marker):
             # Site managers, except for five.localsitemanager, return unwrapped
             # utilities. If the result is something which is acquisition-unaware
             # but unwrapped we wrap it on the context.
-            if IAcquirer.providedBy(obj) and \
-                    aq_parent(utility) is None and \
-                    IAcquirer.providedBy(utility):
+            if (
+                IAcquirer.providedBy(obj)
+                and aq_parent(utility) is None
+                and IAcquirer.providedBy(utility)
+            ):
                 utilty = utility.__of__(obj)
             return utility
         except ComponentLookupError:

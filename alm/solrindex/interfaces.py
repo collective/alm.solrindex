@@ -1,14 +1,17 @@
+from Products.PluginIndexes.interfaces import IPluggableIndex
 from zope.interface import Attribute
 from zope.interface import Interface
-from Products.PluginIndexes.interfaces import IPluggableIndex
 
 
 class ISolrIndex(IPluggableIndex):
     """A ZCatalog multi-index that uses Solr for storage and queries."""
+
     solr_uri = Attribute("The URI of the Solr server")
-    connection_manager = Attribute("""
+    connection_manager = Attribute(
+        """
         An ISolrConnectionManager that is specific to the ZODB connection.
-        """)
+        """
+    )
     expected_encodings = Attribute(
         "List of encodings to try to transcode to UTF8 from when querying Solr"
     )
@@ -20,6 +23,7 @@ class ISolrConnectionManager(Interface):
     An instance of this class gets stored in the foreign_connections
     attribute of a ZODB connection.
     """
+
     connection = Attribute("An instance of solr.SolrConnection (from solrpy)")
     schema = Attribute("An ISolrSchema instance")
     solr_uri = Attribute("The URI of the Solr server")
@@ -32,23 +36,28 @@ class ISolrConnectionManager(Interface):
 
 
 class ISolrSchema(Interface):
-    """The relevant part of the schema installed in a Solr instance.
-    """
+    """The relevant part of the schema installed in a Solr instance."""
+
     uniqueKey = Attribute("The name of the unique field")
-    defaultSearchField = Attribute("""
+    defaultSearchField = Attribute(
+        """
         The name of the field to search when no field has been
         specified in the query
-        """)
+        """
+    )
     fields = Attribute("A sequence of ISolrField")
 
 
 class ISolrField(Interface):
     """A field in Solr"""
+
     name = Attribute("The name")
     type = Attribute("The type (an arbitrary string; don't rely on it)")
-    java_class = Attribute("""
+    java_class = Attribute(
+        """
         The fully qualified name of the Java class that handles the field
-        """)
+        """
+    )
     indexed = Attribute("True if the field is searchable")
     stored = Attribute("True if the value of the field can be retrieved")
     required = Attribute("True if a value is required for indexing")
@@ -63,6 +72,7 @@ class ISolrFieldHandler(Interface):
     Register by field name (most specific), Java class name (less
     specific), or no name (most general).
     """
+
     def parse_query(field, field_query):
         """Convert a field-specific part of a catalog query to Solr parameters.
 

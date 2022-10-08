@@ -1,34 +1,37 @@
 """Handlers for various Solr field types"""
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.quotequery import quote_query
+from datetime import date
+from datetime import datetime
+from DateTime.DateTime import DateTime
 from Products.ZCatalog.query import IndexQuery
 from zope.interface import implementer
+
 import re
 import time
-from datetime import date, datetime
-from DateTime.DateTime import DateTime
+
 
 # See: http://lucene.apache.org/java/2_4_0/queryparsersyntax.html
 _escape_chars = re.compile(r'([-+&|!(){}\[\]^"~*?:\\])')
 
-invalid_xml_re = re.compile(r'[\x00-\x08\x0B\x0C\x0E-\x1F]')
+invalid_xml_re = re.compile(r"[\x00-\x08\x0B\x0C\x0E-\x1F]")
 
 
 def solr_escape(query):
     """Escape all characters that have a special meaning to Solr"""
-    return _escape_chars.sub(r'\\\1', query)
+    return _escape_chars.sub(r"\\\1", query)
 
 
 @implementer(ISolrFieldHandler)
 class DefaultFieldHandler:
 
-    operators = ('and', 'or')
-    default_operator = 'or'
+    operators = ("and", "or")
+    default_operator = "or"
 
     def parse_query(self, field, field_query):
         name = field.name
         request = {name: field_query}
-        record = IndexQuery(request, name, ('query', 'operator'))
+        record = IndexQuery(request, name, ("query", "operator"))
         if not record.keys:
             return None
 
@@ -40,20 +43,20 @@ class DefaultFieldHandler:
 
         if len(parts) == 1:
             escaped = solr_escape(parts[0])
-            return {'fq': u'%s:"%s"' % (name, escaped)}
+            return {"fq": '%s:"%s"' % (name, escaped)}
 
-        operator = record.get('operator', self.default_operator)
+        operator = record.get("operator", self.default_operator)
         if operator not in self.operators:
             raise AssertionError("Invalid operator: %s" % operator)
 
-        parts_fmt = [u'"%s"' % solr_escape(part) for part in parts]
-        s = (u' %s ' % operator.upper()).join(parts_fmt)
-        return {'fq': u'%s:(%s)' % (name, s)}
+        parts_fmt = ['"%s"' % solr_escape(part) for part in parts]
+        s = (" %s " % operator.upper()).join(parts_fmt)
+        return {"fq": "%s:(%s)" % (name, s)}
 
     def convert(self, data):
         if data is None:
             return ()
-        if hasattr(data, '__iter__') and not isinstance(data, (str, bytes)):
+        if hasattr(data, "__iter__") and not isinstance(data, (str, bytes)):
             data_seq = data
         else:
             data_seq = [data]
@@ -62,53 +65,54 @@ class DefaultFieldHandler:
 
     def convert_one(self, value):
         if isinstance(value, bytes):
-            s = value.decode('utf-8')
+            s = value.decode("utf-8")
         else:
             s = value
-        return invalid_xml_re.sub('', s)
+        return invalid_xml_re.sub("", s)
 
 
 class BoolFieldHandler(DefaultFieldHandler):
-
     def convert_one(self, value):
         if value:
-            return 'true'
+            return "true"
         else:
-            return 'false'
+            return "false"
 
 
 class DateFieldHandler(DefaultFieldHandler):
-
     def parse_query(self, field, field_query):
         name = field.name
         request = {name: field_query}
-        record = IndexQuery(request, name, ('query', 'range'))
+        record = IndexQuery(request, name, ("query", "range"))
         if not record.keys:
             return None
 
-        query_range = record.get('range', None)
+        query_range = record.get("range", None)
         if query_range is None:
             return super(DateFieldHandler, self).parse_query(field, field_query)
-        elif query_range == 'min':
+        elif query_range == "min":
             min_query = self.convert_one(min(record.keys))
-            return {'fq': u'%s:[%s TO *]' % (name, solr_escape(min_query))}
-        elif query_range == 'max':
+            return {"fq": "%s:[%s TO *]" % (name, solr_escape(min_query))}
+        elif query_range == "max":
             max_query = self.convert_one(max(record.keys))
-            return {'fq': u'%s:[* TO %s]' % (name, solr_escape(max_query))}
-        elif query_range == 'min:max':
+            return {"fq": "%s:[* TO %s]" % (name, solr_escape(max_query))}
+        elif query_range == "min:max":
             min_query = self.convert_one(min(record.keys))
             max_query = self.convert_one(max(record.keys))
-            return {'fq': u'%s:[%s TO %s]' % (name, solr_escape(min_query), solr_escape(max_query))}
+            return {
+                "fq": "%s:[%s TO %s]"
+                % (name, solr_escape(min_query), solr_escape(max_query))
+            }
         else:
             raise AssertionError("Invalid range: %s" % range)
 
     def convert_one(self, value):
         if isinstance(value, DateTime):
-            t_tup = value.toZone('UTC').parts()
+            t_tup = value.toZone("UTC").parts()
         elif isinstance(value, (float, int)):
             t_tup = time.gmtime(value)
         elif isinstance(value, str):
-            t_obj = DateTime(value).toZone('UTC')
+            t_obj = DateTime(value).toZone("UTC")
             t_tup = t_obj.parts()
         elif isinstance(value, date):
             t_tup = value.timetuple()
@@ -118,29 +122,28 @@ class DateFieldHandler(DefaultFieldHandler):
             # can't interpret
             raise TypeError("Not a date value: %s" % repr(value))
 
-        converted = '%04d-%02d-%02dT%02d:%02d:%06.3fZ' % t_tup[:6]
+        converted = "%04d-%02d-%02dT%02d:%02d:%06.3fZ" % t_tup[:6]
         return converted
 
 
 class TextFieldHandler(DefaultFieldHandler):
-
     def parse_query(self, field, field_query):
         name = field.name
         request = {name: field_query}
-        record = IndexQuery(request, name, ('query',))
+        record = IndexQuery(request, name, ("query",))
         if not record.keys:
             return None
 
-        query_str = ' '.join(record.keys)
+        query_str = " ".join(record.keys)
         if not query_str:
             return None
 
-        return {'q': u'+%s:%s' % (name, quote_query(query_str))}
+        return {"q": "+%s:%s" % (name, quote_query(query_str))}
 
     def convert(self, data):
         if data is None:
             return ()
-        if hasattr(data, '__iter__') and not isinstance(data, (str, bytes)):
+        if hasattr(data, "__iter__") and not isinstance(data, (str, bytes)):
             data_seq = data
         else:
             data_seq = [data]

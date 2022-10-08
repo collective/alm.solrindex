@@ -1,18 +1,19 @@
-
 """This is a script to wait for a URI to be available.
 
 Use it to wait for Solr to start up.
 """
 from urllib.request import urlopen
+
 import sys
 import time
+
 
 default_timeout = 90
 
 
 def main():
     if len(sys.argv) < 2:
-        sys.exit('usage: %s URI [timeout]' % sys.argv[0])
+        sys.exit("usage: %s URI [timeout]" % sys.argv[0])
     uri = sys.argv[1]
     if len(sys.argv) >= 3:
         timeout = int(sys.argv[2])
@@ -49,5 +50,6 @@ def main():
     except (KeyboardInterrupt, SystemExit):
         sys.exit(1)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
