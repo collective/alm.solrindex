@@ -22,7 +22,7 @@ long_description = (
 )
 
 here = os.path.abspath(os.path.normpath(os.path.dirname(__file__)))
-version_txt = os.path.join(here, "alm/solrindex/version.txt")
+version_txt = os.path.join(here, "src/alm/solrindex/version.txt")
 alm_solrindex_version = open(version_txt).read().strip()
 
 setup(
