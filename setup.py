@@ -43,6 +43,7 @@ setup(
     keywords="zope zcatalog solr plone",
     author="Six Feet Up, Inc.",
     author_email="info@sixfeetup.com",
+    url="https://github.com/collective/alm.solrindex",
     license="BSD",
     packages=find_packages(exclude=["ez_setup"]),
     namespace_packages=["alm"],
@@ -59,6 +60,7 @@ setup(
             "zope.testrunner",
         ],
     },
+    python_requires=">=3.7",
     test_suite="alm.solrindex.tests.test_suite",
     entry_points="""\
     [z3c.autoinclude.plugin]
