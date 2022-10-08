@@ -1,35 +1,36 @@
-name: Run Tests
-
-on:
-  - push
-
+name: Tests
+on: [push]
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["2.7", "3.8"]
+        python: [3.7, 3.8, 3.9, "3.10"]
+        plone: ["6.0.0b3", "5.2.9"]
+        exclude:
+          - plone: "5.2.9"
+            python: 3.9
+          - plone: "5.2.9"
+            python: "3.10"
+          - plone: "6.0.0b3"
+            python: 3.7
+
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Cache eggs
-      uses: actions/cache@v2
-      with:
-        path: |
-          eggs
-          buildout-cache
-        key: eggs-${{ matrix.python-version }}-${{ hashFiles('travis.cfg') }}
-        restore-keys: eggs-${{ matrix.python-version }}
-    - name: "Install Python dependencies (zc.buildout)"
-      uses: "py-actions/py-dependency-install@v2"
-      with:
-        path: "requirements.txt"
-    - name: "Bootstrap zc.buildout"
-      run: buildout bootstrap
-    - name: Run buildout
-      run: bin/buildout -c travis.cfg
-    - name: Run tests
-      run: bin/pytest
+      # git checkout
+      - uses: actions/checkout@v2
+
+      - name: Setup Plone ${{ matrix.plone }} with Python ${{ matrix.python }}
+        id: setup
+        uses: plone/setup-plone@v1.1.0
+        with:
+          python-version: ${{ matrix.python }}
+          plone-version: ${{ matrix.plone }}
+
+      - name: Install alm.solrindex
+        run: |
+          pip install "."
+
+      - name: test
+        run: |
+          zope-testrunner --auto-color --auto-progress --test-path alm
