@@ -1,5 +1,10 @@
 """SolrIndex and SolrConnectionManager"""
 from Acquisition import aq_parent
+from alm.solrindex.interfaces import ISolrConnectionManager
+from alm.solrindex.interfaces import ISolrIndex
+from alm.solrindex.interfaces import ISolrIndexingWrapper
+from alm.solrindex.schema import SolrSchema
+from alm.solrindex.solrpycore import SolrConnection
 from BTrees.IIBTree import IIBTree
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
@@ -9,15 +14,10 @@ from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 from transaction.interfaces import IDataManager
 from zope.component import queryAdapter
 from zope.interface import implementer
+
 import logging
 import os
 import transaction
-
-from alm.solrindex.interfaces import ISolrConnectionManager
-from alm.solrindex.interfaces import ISolrIndex
-from alm.solrindex.interfaces import ISolrIndexingWrapper
-from alm.solrindex.schema import SolrSchema
-from alm.solrindex.solrpycore import SolrConnection
 
 
 disable_solr = os.environ.get("DISABLE_SOLR")
