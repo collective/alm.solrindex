@@ -469,7 +469,7 @@ class SolrConnection:
 
         # Clean up optional parameters to match SOLR spec.
         params = dict(
-            [(key.replace("_", "."), value) for key, value in list(params.items())]
+            [(key.replace("_", "."), value) for key, value in params.items()]
         )
 
         if highlight:
@@ -667,7 +667,7 @@ class SolrConnection:
 
         # Clean up optional parameters to match SOLR spec.
         params = dict(
-            [(key.replace("_", "."), value) for key, value in list(params.items())]
+            [(key.replace("_", "."), value) for key, value in params.items()]
         )
 
         request = urllib.parse.urlencode(params, doseq=True)
@@ -711,7 +711,7 @@ class SolrConnection:
 
     def __add(self, lst, fields):
         lst.append("<doc>")
-        for field, value in list(fields.items()):
+        for field, value in fields.items():
             # Handle multi-valued fields if values
             # is passed in as a list/tuple
             if not isinstance(value, (list, tuple)):
@@ -959,7 +959,7 @@ class ResponseContentHandler(ContentHandler):
         else:
             raise SolrException("Unknown tag: %s" % name)
 
-        for attr, val in list(node.attrs.items()):
+        for attr, val in node.attrs.items():
             if attr != "name":
                 setattr(node.final, attr, val)
 
@@ -993,7 +993,7 @@ class Node:
             self.name,
             "".join(self.chars).strip(),
             " ".join(
-                ['%s="%s"' % (attr, val) for attr, val in list(self.attrs.items())]
+                ['%s="%s"' % (attr, val) for attr, val in self.attrs.items()]
             ),
         )
 

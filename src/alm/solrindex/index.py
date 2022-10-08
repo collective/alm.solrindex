@@ -3,52 +3,15 @@ from Acquisition import aq_parent
 from BTrees.IIBTree import IIBTree
 from OFS.PropertyManager import PropertyManager
 from OFS.SimpleItem import SimpleItem
+from plone.app.textfield.value import RichTextValue
+from Products.CMFCore.utils import getToolByName
 from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
-
-import logging
-import os
-import transaction
-
-
-try:
-    from plone.app.textfield.value import RichTextValue
-except ImportError:
-
-    class RichTextValue:
-        """Placeholder for a missing RichTextValue class"""
-
-
 from transaction.interfaces import IDataManager
 from zope.component import queryAdapter
 from zope.interface import implementer
-
-
-try:
-    from Products.CMFCore.utils import getToolByName
-except ImportError:
-    from alm.solrindex.utils import getToolByName
-try:
-    from Products.ATContentTypes.criteria import _criterionRegistry
-    from Products.ATContentTypes.criteria import ATSimpleStringCriterion
-    from Products.ATContentTypes.criteria import registerCriterion
-    from Products.ATContentTypes.criteria import STRING_INDICES
-    from Products.ATContentTypes.criteria import TEXT_INDICES
-    from Products.ATContentTypes.criteria import unregisterCriterion
-except ImportError:
-    pass
-else:
-    # If we do not update this, Collections will not be able to use
-    # the SearchableText criterion when that has SolrIndex as
-    # meta_type.
-    TEXT_INDICES += ("SolrIndex",)
-    STRING_INDICES += ("SolrIndex",)
-    orig = _criterionRegistry.criterion2index["ATSimpleStringCriterion"]
-    new_indices = orig + ("SolrIndex",)
-    # Note that simply by importing, the criterion has already been
-    # registered, so our changes above are too late really.  We fix
-    # that here.
-    unregisterCriterion(ATSimpleStringCriterion)
-    registerCriterion(ATSimpleStringCriterion, new_indices)
+import logging
+import os
+import transaction
 
 from alm.solrindex.interfaces import ISolrConnectionManager
 from alm.solrindex.interfaces import ISolrIndex
@@ -65,16 +28,6 @@ log = logging.getLogger(__name__)
 @implementer(ISolrIndex)
 class SolrIndex(PropertyManager, SimpleItem):
 
-    # Be careful what meta_type you set here, otherwise there will be
-    # no available criteria (like ATSimpleStringCriterion) available
-    # for this index in the portal_atct tool.  If you run into trouble
-    # with this, have a look at
-    # Products.ATContentTypes.criteria.registerCriterion and
-    # Products.ATContentTypes.criteria.TEXT_INDICES
-    #
-    # Note that the meta_type is also set in the configure.zcml.  Some
-    # non-deterministic behaviour [at least for me, Maurits] has been
-    # observed here.
     meta_type = "SolrIndex"
 
     _properties = (
@@ -102,8 +55,7 @@ class SolrIndex(PropertyManager, SimpleItem):
             "id": "expected_encodings",
             "type": "lines",
             "mode": "w",
-            "description": "The list of encodings to try to decode from "
-            " before encoding to UTF-8 to submit to Solr.",
+            "description": "The list of encodings to try to decode in the query"
         },
         {
             "id": "catalog_name",
@@ -283,7 +235,7 @@ class SolrIndex(PropertyManager, SimpleItem):
             field_params = field.handler.parse_query(field, field_query)
             if field_params:
                 queried.append(name)
-                for k, to_add in list(field_params.items()):
+                for k, to_add in field_params.items():
                     if k not in solr_params:
                         solr_params[k] = to_add
                     else:
@@ -340,8 +292,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         if isinstance(solr_params["q"], list):
             solr_params["q"] = " ".join(solr_params["q"])
 
-        # Decode all strings using list from `expected_encodings`,
-        # then transcode to UTF-8
+        # Decode all strings using list from `expected_encodings`
         transcoded_params = self._transcode_params(solr_params)
 
         log.debug("querying: %r", solr_params)
@@ -395,15 +346,15 @@ class SolrIndex(PropertyManager, SimpleItem):
 
     def _transcode_params(self, params):
         transcoded_params = {}
-        for key, val in list(params.items()):
+        for key, val in params.items():
             enc_val = None
-            if isinstance(val, (str, bytes)):
-                enc_val = self._encode_param(val)
+            if isinstance(val, bytes):
+                enc_val = self._decode_param(val)
             elif isinstance(val, list):
                 enc_val = []
                 for v in val:
-                    if isinstance(v, (str, bytes)):
-                        enc_val.append(self._encode_param(v))
+                    if isinstance(v, bytes):
+                        enc_val.append(self._decode_param(v))
                     else:
                         enc_val.append(v)
             else:
@@ -411,26 +362,24 @@ class SolrIndex(PropertyManager, SimpleItem):
             transcoded_params[key] = enc_val
         return transcoded_params
 
-    def _encode_param(self, val):
-        decoded_val = self._decode_param(val)
-        return decoded_val
-
     def _decode_param(self, val):
-        if isinstance(val, dict):
-            return {k: self._decode_param(v) for k, v in list(val.items())}
+        if isinstance(val, str):
+            return val
+        elif isinstance(val, dict):
+            return {k: self._decode_param(v) for k, v in val.items()}
         elif isinstance(val, list):
             return [self._decode_param(v) for v in val]
-        elif isinstance(val, (str, bytes)):
+        elif isinstance(val, bytes):
             decoded_val = None
             for encoding in self.expected_encodings:
                 try:
-                    decoded_val = force_unicode(val, encoding)
+                    decoded_val = str(val, encoding)
                 except UnicodeDecodeError:
                     continue
             if decoded_val is None:
                 # Our escape hatch; if none of the expected encodings
                 # work, we fall back to UTF8 and replace characters
-                decoded_val = force_unicode(val, encoding="utf-8", errors="replace")
+                decoded_val = str(val, encoding="utf-8", errors="replace")
             return decoded_val
         else:
             return val
@@ -529,45 +478,6 @@ class SolrConnectionManager:
         return NoRollbackSavepoint(self)
 
 
-def force_unicode(s, encoding="utf-8", errors="strict"):
-    if isinstance(s, str):
-        return s
-    try:
-        if not isinstance(
-            s,
-            (str, bytes),
-        ):
-            if hasattr(s, "__unicode__"):
-                s = str(s)
-            else:
-                try:
-                    s = str(str(s), encoding, errors)
-                except UnicodeEncodeError:
-                    if not isinstance(s, Exception):
-                        raise
-                    # If we get to here, the caller has passed in an Exception
-                    # subclass populated with non-ASCII data without special
-                    # handling to display as a string. We need to handle this
-                    # without raising a further exception. We do an
-                    # approximation to what the Exception's standard str()
-                    # output should be.
-                    s = " ".join([force_unicode(arg, encoding, errors) for arg in s])
-        elif isinstance(s, bytes):
-            # Note: We use .decode() here, instead of unicode(s, encoding,
-            # errors), so that if s is a SafeString, it ends up being a
-            # SafeUnicode at the end.
-            s = s.decode(encoding, errors)
-    except UnicodeDecodeError:
-        # If we get to here, the caller has passed in an Exception
-        # subclass populated with non-ASCII bytestring data without a
-        # working unicode method. Try to handle this without raising a
-        # further exception by individually forcing the exception args
-        # to unicode.
-        s = " ".join([force_unicode(arg, encoding, "replace") for arg in s])
-
-    return s
-
-
 class HighlightingBrain(AbstractCatalogBrain):
     highlighting = None  # Data returned by Solr, indexed by RID
     highlighting_key = None  # Submitted search terms, to see if we need to
@@ -589,7 +499,7 @@ class HighlightingBrain(AbstractCatalogBrain):
         if fields is None:
             fields = list(brain_highlights.keys())
 
-        for fname, fhighlights in list(brain_highlights.items()):
+        for fname, fhighlights in brain_highlights.items():
             if fname not in highlighting:
                 highlighting[fname] = []
             if isinstance(fhighlights, (tuple, list)):
@@ -600,14 +510,14 @@ class HighlightingBrain(AbstractCatalogBrain):
         results = dict(
             [
                 (fname, fhighlights)
-                for fname, fhighlights in list(highlighting.items())
+                for fname, fhighlights in highlighting.items()
                 if fname in fields
             ]
         )
 
         if combine_fields:
             combined = []
-            for val in list(results.values()):
+            for val in results.values():
                 combined.extend(val)
             return combined
         else:
@@ -630,6 +540,6 @@ def get_solr_indexes(catalog):
     # Use getIndex to ensure the object is wrapped correctly
     return [
         catalog.getIndex(name)
-        for name, idx in list(catalog.indexes.items())
+        for name, idx in catalog.indexes.items()
         if ISolrIndex.providedBy(idx)
     ]
