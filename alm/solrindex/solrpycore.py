@@ -502,7 +502,7 @@ class SolrConnection:
                 sort = ",".join(sort)
             params["sort"] = "%s %s" % (sort, sort_order)
 
-        if score and not "score" in fields.split(","):
+        if score and "score" not in fields.split(","):
             fields += ",score"
 
         params["fl"] = fields
@@ -721,7 +721,7 @@ class SolrConnection:
 
             for value in values:
                 # ignore values that are not defined
-                if value == None:
+                if value is None:
                     continue
                 # Do some basic data conversion
                 if isinstance(value, datetime.date):
@@ -1006,7 +1006,7 @@ def check_response_status(response):
         ex = SolrException(response.status, response.reason)
         try:
             ex.body = response.read()
-        except:
+        except Exception:
             pass
         raise ex
     return response

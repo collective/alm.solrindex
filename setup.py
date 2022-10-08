@@ -52,7 +52,7 @@ setup(
         "setuptools",
         "Products.CMFCore",
         "Zope2",
-        #'solrpy',  # we have a private copy until solrpy fixes some bugs
+        # 'solrpy',  # we have a private copy until solrpy fixes some bugs
     ],
     extras_require={
         "test": [

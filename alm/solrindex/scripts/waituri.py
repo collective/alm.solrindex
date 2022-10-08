@@ -36,7 +36,7 @@ def main():
                         f.close()
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except:
+            except Exception:
                 out.write(".")
                 out.flush()
                 time.sleep(3)

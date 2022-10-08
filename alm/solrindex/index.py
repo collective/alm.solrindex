@@ -102,8 +102,8 @@ class SolrIndex(PropertyManager, SimpleItem):
             "id": "expected_encodings",
             "type": "lines",
             "mode": "w",
-            "description": "The list of encodings to try to decode from before encoding "
-            "to UTF-8 to submit to Solr.",
+            "description": "The list of encodings to try to decode from "
+            " before encoding to UTF-8 to submit to Solr.",
         },
         {
             "id": "catalog_name",
@@ -263,7 +263,6 @@ class SolrIndex(PropertyManager, SimpleItem):
             return None
 
         cm = self.connection_manager
-        q = []  # List of query texts to pass as "q"
         queried = []  # List of field names queried
         stored = []  # List of stored field names
         solr_params = {}
@@ -436,7 +435,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         else:
             return val
 
-    ## The ZCatalog Index management screen uses these methods ##
+    # The ZCatalog Index management screen uses these methods
 
     def numObjects(self):
         """Return number of unique words in the index"""
@@ -508,13 +507,13 @@ class SolrConnectionManager:
 
     def tpc_vote(self, transaction):
         # ensure connection is open
-        dummy = self.connection
+        self.connection
 
     def tpc_finish(self, transaction):
         try:
             try:
                 self.connection.commit()
-            except:
+            except Exception:
                 self.abort(transaction)
                 raise
         finally:
@@ -558,7 +557,7 @@ def force_unicode(s, encoding="utf-8", errors="strict"):
             # errors), so that if s is a SafeString, it ends up being a
             # SafeUnicode at the end.
             s = s.decode(encoding, errors)
-    except UnicodeDecodeError as e:
+    except UnicodeDecodeError:
         # If we get to here, the caller has passed in an Exception
         # subclass populated with non-ASCII bytestring data without a
         # working unicode method. Try to handle this without raising a

@@ -114,7 +114,7 @@ class SolrIndexTests(unittest.TestCase):
     def test__apply_index_no_matching_fields(self):
         self._registerConnectionManager()
         index = self._makeOne("id", "someuri")
-        cm = index.connection_manager
+        index.connection_manager
         request = {"f99": "somequery"}
         res = index._apply_index(request)
         self.assertEqual(res, None)

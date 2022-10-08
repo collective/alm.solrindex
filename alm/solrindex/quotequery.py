@@ -64,7 +64,7 @@ class Range(Group):
         first = last = "*"
         if len(self) == 0:
             return ""
-        if not "TO" in self:
+        if "TO" not in self:
             # Not valid range, quote
             return "\\%s%s\\%s" % (self.start, "".join(str(x) for x in self), self.end)
         else:

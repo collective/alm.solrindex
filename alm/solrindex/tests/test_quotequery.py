@@ -18,39 +18,39 @@ class QuoteQueryTests(unittest.TestCase):
         self.assertEqual(quote("foo"), "foo")
         self.assertEqual(quote("foo "), "foo")
         self.assertEqual(quote('"foo"'), '"foo"')
-        self.assertEqual(quote('"foo'), '\\"foo')
-        self.assertEqual(quote('foo"'), 'foo\\"')
+        self.assertEqual(quote('"foo'), r"\"foo")
+        self.assertEqual(quote('foo"'), r"foo\"")
         self.assertEqual(quote("foo bar"), "(foo bar)")
         self.assertEqual(quote('"foo bar" bah'), '("foo bar" bah)')
-        self.assertEqual(quote("\\["), "\\[")
-        self.assertEqual(quote(")"), "\)")
-        self.assertEqual(quote('"(foo bar)" bah'), '("\\(foo bar\\)" bah)')
-        self.assertEqual(quote('"(foo\\"bar)" bah'), '("\\(foo\\"bar\\)" bah)')
+        self.assertEqual(quote(r"\["), r"\\[")
+        self.assertEqual(quote(")"), r"\)")
+        self.assertEqual(quote('"(foo bar)" bah'), r'("\(foo bar\)" bah)')
+        self.assertEqual(quote(r'"(foo\"bar)" bah'), r'("\(foo\"bar\)" bah)')
         self.assertEqual(quote('"foo bar"'), '"foo bar"')
-        self.assertEqual(quote('"foo bar'), '(\\"foo bar)')
+        self.assertEqual(quote('"foo bar'), r"(\"foo bar)")
         self.assertEqual(quote("foo bar what?"), "(foo bar what?)")
         self.assertEqual(quote("[]"), "")
         self.assertEqual(quote("()"), "")
         self.assertEqual(quote("{}"), "")
-        self.assertEqual(quote('...""'), '...\\"\\"')
+        self.assertEqual(quote('...""'), r"...\"\"")
         # Search for \ has to be quoted
-        self.assertEqual(quote("\\"), "\\\\")
-        self.assertEqual(quote("\?"), "\?")
+        self.assertEqual(quote("\\"), r"\\")
+        self.assertEqual(quote(r"\?"), r"\\?")
         self.assertEqual(quote("john@foo.com"), "john@foo.com")
         self.assertEqual(
             quote("http://machine/folder and item and some/path and and amilli3*"),
             r"(http\://machine/folder and item and some/path and and amilli3*)",
         )
-        self.assertEqual(quote('"[]"'), '"\[\]"')
-        self.assertEqual(quote('"{}"'), '"\{\}"')
-        self.assertEqual(quote('"()"'), '"\(\)"')
-        self.assertEqual(quote('foo and bar and 42"*'), '(foo and bar and 42\\"\\*)')
+        self.assertEqual(quote('"[]"'), r'"\[\]"')
+        self.assertEqual(quote('"{}"'), r'"\{\}"')
+        self.assertEqual(quote('"()"'), r'"\(\)"')
+        self.assertEqual(quote('foo and bar and 42"*'), r"(foo and bar and 42\"\*)")
         # Can't use ? or * as beginning of new query
         self.assertEqual(quote('"fix and it"*'), '"fix and it"')
         self.assertEqual(quote('"fix and it"?'), '"fix and it"')
         self.assertEqual(
             quote("foo and bar and [foobar at foo.com]*"),
-            "(foo and bar and \[foobar at foo.com\])",
+            r"(foo and bar and \[foobar at foo.com\])",
         )
 
     def testQuotingWildcardSearches(self):
