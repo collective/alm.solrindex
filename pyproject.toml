@@ -20,3 +20,7 @@ max-complexity=25
 pycodestyle = ["+*", "-E203", "-W503"]
 pyflakes = ["+*"]
 "flake8-*" = ["+*", "-B902"]
+
+[tool.plone-code-analysis]
+paths = "src/ setup.py"
+paths_pyroma = "."
