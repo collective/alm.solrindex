@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from builtins import object
 import unittest
 
 
@@ -273,5 +272,5 @@ class TextFieldHandlerTests(unittest.TestCase):
             {'q': u'+dummyfield:((fun OR play) +with Solr^4)'})
 
 
-class DummyField(object):
+class DummyField:
     name = 'dummyfield'

@@ -1,8 +1,6 @@
 # This is derived from collective.solr.queryparser.
 # See http://lucene.apache.org/java/2_4_0/queryparsersyntax.html
 
-from builtins import str
-from builtins import object
 from re import compile
 
 # Solr/lucene reserved characters/terms: + - && || ! ( ) { } [ ] ^ " ~ * ? : \
@@ -22,7 +20,7 @@ query_tokenizer = compile(
     r')')
 
 
-class Whitespace(object):
+class Whitespace:
 
     def __bool__(self):
         return False

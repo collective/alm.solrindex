@@ -279,9 +279,6 @@ Enter a raw query, without processing the returned HTML contents.
     >>> print c.raw_query(q='id:[* TO *]', wt='python', rows='10')
 
 """
-from builtins import str
-from builtins import object
-
 import cgi
 import sys
 import socket
@@ -324,7 +321,7 @@ class SolrException(Exception):
 # ===================================================================
 # Connection Object
 # ===================================================================
-class SolrConnection(object):
+class SolrConnection:
     """
     Represents a Solr connection.
 
@@ -754,7 +751,7 @@ class SolrConnection(object):
 # ===================================================================
 # Response objects
 # ===================================================================
-class Response(object):
+class Response:
     """
     A container class for a
 
@@ -950,7 +947,7 @@ class Results(list):
     pass
 
 
-class Node(object):
+class Node:
     """
     A temporary object used in XML processing. Not seen by end user.
     """

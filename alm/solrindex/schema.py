@@ -1,5 +1,4 @@
 """Parser of a Solr schema.xml"""
-from builtins import object
 from alm.solrindex.interfaces import ISolrField
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.interfaces import ISolrSchema
@@ -20,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 @implementer(ISolrSchema)
-class SolrSchema(object):
+class SolrSchema:
 
     uniqueKey = None
     defaultSearchField = None
@@ -72,7 +71,7 @@ class SolrSchema(object):
 
 
 @implementer(ISolrField)
-class SolrField(object):
+class SolrField:
 
     _boolean_attrs = (
         'indexed', 'stored', 'required', 'multiValued',

@@ -1,6 +1,4 @@
 """SolrIndex and SolrConnectionManager"""
-from builtins import str
-from builtins import object
 import logging
 import os
 import transaction
@@ -13,7 +11,7 @@ from Products.ZCatalog.CatalogBrains import AbstractCatalogBrain
 try:
     from plone.app.textfield.value import RichTextValue
 except ImportError:
-    class RichTextValue(object):
+    class RichTextValue:
         """Placeholder for a missing RichTextValue class"""
 
 from transaction.interfaces import IDataManager
@@ -430,7 +428,7 @@ class SolrIndex(PropertyManager, SimpleItem):
         cm.connection.delete_query('*:*')
 
 
-class NoRollbackSavepoint(object):
+class NoRollbackSavepoint:
 
     def __init__(self, datamanager):
         self.datamanager = datamanager
@@ -440,7 +438,7 @@ class NoRollbackSavepoint(object):
 
 
 @implementer(ISolrConnectionManager, IDataManager)
-class SolrConnectionManager(object):
+class SolrConnectionManager:
 
     def __init__(self, solr_index, connection_factory=SolrConnection):
         self.solr_uri = solr_index.solr_uri

@@ -1,4 +1,3 @@
-from builtins import object
 import unittest
 from zope.testing.cleanup import cleanUp
 
@@ -99,5 +98,5 @@ class SolrSchemaTests(unittest.TestCase):
         self.assertEqual(schema.fields[4].multiValued, True)
 
 
-class DummyFieldHandler(object):
+class DummyFieldHandler:
     pass

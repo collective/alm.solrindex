@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from builtins import object
 import unittest
 from zope.testing.cleanup import cleanUp
 
@@ -290,7 +289,7 @@ class SolrConnectionManagerTests(unittest.TestCase):
         return SolrConnectionManager
 
     def _makeOne(self, uri=''):
-        class DummySolrIndex(object):
+        class DummySolrIndex:
             solr_uri = uri
         obj = self._getTargetClass()(DummySolrIndex(), DummySolrConnection)
         return obj
@@ -342,12 +341,12 @@ class SolrConnectionManagerTests(unittest.TestCase):
         self.assertEqual(obj._connection.commits, 1)
 
 
-class DummyZODBConnection(object):
+class DummyZODBConnection:
     def register(self, obj):
         pass
 
 
-class DummyConnectionManager(object):
+class DummyConnectionManager:
     def __init__(self, index):
         self.index = index
         self.schema = DummySchema()
@@ -359,7 +358,7 @@ class DummyConnectionManager(object):
         self.changed = True
 
 
-class DummySolrConnection(object):
+class DummySolrConnection:
     def __init__(self, uri=None):
         self.uri = uri
         self.queries = []
@@ -389,7 +388,7 @@ class DummySolrConnection(object):
         self.commits += 1
 
 
-class DummySchema(object):
+class DummySchema:
     uniqueKey = 'docid'
 
     def __init__(self):
@@ -398,7 +397,7 @@ class DummySchema(object):
             self.fields.append(DummyField(name))
 
 
-class DummyField(object):
+class DummyField:
     def __init__(self, name):
         self.name = name
         self.stored = False
@@ -406,7 +405,7 @@ class DummyField(object):
         self.type = 'dummy'
 
 
-class DummyFieldHandler(object):
+class DummyFieldHandler:
     def parse_query(self, field, field_query):
         return {'q': '%s:%s' % (field.name, field_query)}
 
@@ -414,12 +413,12 @@ class DummyFieldHandler(object):
         return [value]
 
 
-class DummySolrResult(object):
+class DummySolrResult:
     def __init__(self, numFound):
         self.numFound = numFound
 
 
-class DummyIndexableObject(object):
+class DummyIndexableObject:
     f1 = 'a'
 
     def f2(self):

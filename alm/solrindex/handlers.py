@@ -1,10 +1,7 @@
 """Handlers for various Solr field types"""
-from builtins import str
-from builtins import object
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.quotequery import quote_query
 from Products.PluginIndexes.common.util import parseIndexRequest
-from builtins import bytes
 from zope.interface import implementer
 import re
 import time
@@ -23,7 +20,7 @@ def solr_escape(query):
 
 
 @implementer(ISolrFieldHandler)
-class DefaultFieldHandler(object):
+class DefaultFieldHandler:
 
     operators = ('and', 'or')
     default_operator = 'or'
