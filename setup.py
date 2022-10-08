@@ -32,8 +32,8 @@ setup(
     # http://www.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         'Framework :: Zope2',
-        'Framework :: Plone :: 4.3',
-        'Framework :: Plone :: 5.0',
+        'Framework :: Plone :: 5.2',
+        'Framework :: Plone :: 6.0',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries :: Python Modules',
         'License :: OSI Approved :: GNU General Public License (GPL)',
@@ -49,7 +49,6 @@ setup(
     install_requires=[
         'setuptools',
         'Products.CMFPlone',
-        'future',
         #'solrpy',  # we have a private copy until solrpy fixes some bugs
     ],
     test_suite='alm.solrindex.tests.test_suite',

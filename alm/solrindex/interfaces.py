@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from zope.interface import Attribute
 from zope.interface import Interface
 from Products.PluginIndexes.interfaces import IPluggableIndex

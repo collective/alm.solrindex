@@ -279,12 +279,8 @@ Enter a raw query, without processing the returned HTML contents.
     >>> print c.raw_query(q='id:[* TO *]', wt='python', rows='10')
 
 """
-from __future__ import unicode_literals
 from builtins import str
-from past.builtins import basestring
 from builtins import object
-from future.standard_library import install_aliases
-install_aliases()
 
 import cgi
 import sys
@@ -460,14 +456,14 @@ class SolrConnection(object):
         if highlight:
             params['hl'] = 'true'
             if not isinstance(highlight, (bool, int, float)):
-                if not isinstance(highlight, basestring):
+                if not isinstance(highlight, str):
                     highlight = ",".join(highlight)
                 params['hl.fl'] = highlight
             else:
                 if not fields:
                     raise ValueError(
                         "highlight is True and no fields were given")
-                elif isinstance(fields, basestring):
+                elif isinstance(fields, str):
                     params['hl.fl'] = [fields]
                 else:
                     params['hl.fl'] = ",".join(fields)
@@ -476,7 +472,7 @@ class SolrConnection(object):
             params['q'] = q
 
         if fields:
-            if not isinstance(fields, basestring):
+            if not isinstance(fields, str):
                 fields = ",".join(fields)
         if not fields:
             fields = '*'
@@ -484,7 +480,7 @@ class SolrConnection(object):
         if sort:
             if not sort_order or sort_order not in ("asc", "desc"):
                 raise ValueError("sort_order must be 'asc' or 'desc'")
-            if not isinstance(sort, basestring):
+            if not isinstance(sort, str):
                 sort = ",".join(sort)
             params['sort'] = "%s %s" % (sort, sort_order)
 

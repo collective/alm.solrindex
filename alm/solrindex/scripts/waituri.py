@@ -3,8 +3,7 @@
 
 Use it to wait for Solr to start up.
 """
-from __future__ import unicode_literals
-from future.moves.urllib.request import urlopen
+from urllib.request import urlopen
 import sys
 import time
 

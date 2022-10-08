@@ -1,12 +1,9 @@
-from __future__ import unicode_literals
-
 # This is derived from collective.solr.queryparser.
 # See http://lucene.apache.org/java/2_4_0/queryparsersyntax.html
 
 from builtins import str
 from builtins import object
 from re import compile
-from past.builtins import basestring
 
 # Solr/lucene reserved characters/terms: + - && || ! ( ) { } [ ] ^ " ~ * ? : \
 # Five groups for tokenizer:
@@ -252,7 +249,7 @@ def quote_query(query):
                 # ? and * can not be the first characters of a search
                 if ((stack.current
                         and not getattr(stack.current[-1], 'isgroup', False)
-                        and (isinstance(stack.current[-1], basestring)
+                        and (isinstance(stack.current[-1], (str, bytes))
                         and not stack.current[-1] in special))
                         or isinstance(stack.current, Range)):
                     stack.current.append(special)

@@ -1,11 +1,9 @@
 """Handlers for various Solr field types"""
-from __future__ import unicode_literals
 from builtins import str
 from builtins import object
 from alm.solrindex.interfaces import ISolrFieldHandler
 from alm.solrindex.quotequery import quote_query
 from Products.PluginIndexes.common.util import parseIndexRequest
-from past.builtins import basestring
 from builtins import bytes
 from zope.interface import implementer
 import re
@@ -58,7 +56,7 @@ class DefaultFieldHandler(object):
     def convert(self, data):
         if data is None:
             return ()
-        if hasattr(data, '__iter__') and not isinstance(data, basestring):
+        if hasattr(data, '__iter__') and not isinstance(data, (str, bytes)):
             data_seq = data
         else:
             data_seq = [data]
@@ -112,7 +110,7 @@ class DateFieldHandler(DefaultFieldHandler):
             t_tup = value.toZone('UTC').parts()
         elif isinstance(value, (float, int)):
             t_tup = time.gmtime(value)
-        elif isinstance(value, basestring):
+        elif isinstance(value, str):
             t_obj = DateTime(value).toZone('UTC')
             t_tup = t_obj.parts()
         elif isinstance(value, date):
@@ -145,7 +143,7 @@ class TextFieldHandler(DefaultFieldHandler):
     def convert(self, data):
         if data is None:
             return ()
-        if hasattr(data, '__iter__') and not isinstance(data, basestring):
+        if hasattr(data, '__iter__') and not isinstance(data, (str, bytes)):
             data_seq = data
         else:
             data_seq = [data]

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from alm.solrindex.interfaces import ISolrIndex
 from Products.GenericSetup.interfaces import ISetupEnviron
 from Products.GenericSetup.utils import NodeAdapterBase

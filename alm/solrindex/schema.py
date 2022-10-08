@@ -1,5 +1,4 @@
 """Parser of a Solr schema.xml"""
-from __future__ import unicode_literals
 from builtins import object
 from alm.solrindex.interfaces import ISolrField
 from alm.solrindex.interfaces import ISolrFieldHandler
@@ -13,8 +12,8 @@ from zope.component import getUtility
 from zope.component import queryUtility
 from zope.interface import implementer
 import logging
-from future.moves.urllib import request as urllib_request
-from future.moves.urllib import error as urllib_error
+from urllib import request as urllib_request
+from urllib import error as urllib_error
 
 
 log = logging.getLogger(__name__)

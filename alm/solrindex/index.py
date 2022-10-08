@@ -1,5 +1,4 @@
 """SolrIndex and SolrConnectionManager"""
-from __future__ import unicode_literals
 from builtins import str
 from builtins import object
 import logging
@@ -17,7 +16,6 @@ except ImportError:
     class RichTextValue(object):
         """Placeholder for a missing RichTextValue class"""
 
-from past.builtins import basestring
 from transaction.interfaces import IDataManager
 from zope.component import queryAdapter
 from zope.interface import implementer
@@ -272,7 +270,7 @@ class SolrIndex(PropertyManager, SimpleItem):
                         if not isinstance(v, list):
                             v = [v]
                             solr_params[k] = v
-                        if isinstance(to_add, basestring):
+                        if isinstance(to_add, str):
                             v.append(to_add)
                         else:
                             v.extend(to_add)
@@ -368,12 +366,12 @@ class SolrIndex(PropertyManager, SimpleItem):
         transcoded_params = {}
         for key, val in list(params.items()):
             enc_val = None
-            if isinstance(val, basestring):
+            if isinstance(val, (str, bytes)):
                 enc_val = self._encode_param(val)
             elif isinstance(val, list):
                 enc_val = []
                 for v in val:
-                    if isinstance(v, basestring):
+                    if isinstance(v, (str, bytes)):
                         enc_val.append(self._encode_param(v))
                     else:
                         enc_val.append(v)
@@ -391,7 +389,7 @@ class SolrIndex(PropertyManager, SimpleItem):
             return {k: self._decode_param(v) for k, v in list(val.items())}
         elif isinstance(val, list):
             return [self._decode_param(v) for v in val]
-        elif isinstance(val, basestring):
+        elif isinstance(val, (str, bytes)):
             decoded_val = None
             for encoding in self.expected_encodings:
                 try:
@@ -506,7 +504,7 @@ def force_unicode(s, encoding='utf-8', errors='strict'):
     if isinstance(s, str):
         return s
     try:
-        if not isinstance(s, basestring,):
+        if not isinstance(s, (str, bytes),):
             if hasattr(s, '__unicode__'):
                 s = str(s)
             else:

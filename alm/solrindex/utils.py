@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 # The following code lifted from Products.CMFCore for portability
 from AccessControl import ModuleSecurityInfo
 from Acquisition import aq_get
