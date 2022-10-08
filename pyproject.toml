@@ -1,0 +1,26 @@
+[tool.black]
+line-length = 88
+target-version = ['py38']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+force_alphabetical_sort = true
+force_single_line = true
+lines_after_imports = 2
+line_length = 120
+
+[tool.flakeheaven]
+format="grouped"
+max_line_length=88
+show_source=true
+max-complexity=25
+
+[tool.flakeheaven.plugins]
+pycodestyle = ["+*", "-E203", "-W503"]
+pyflakes = ["+*"]
+"flake8-*" = ["+*", "-B902"]
+
+[tool.plone-code-analysis]
+paths = "src/ setup.py"
+paths_pyroma = "."

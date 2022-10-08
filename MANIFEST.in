@@ -1,0 +1,4 @@
+graft src
+include *.rst
+include *.txt
+include *.py

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<object meta_type="Plone Catalog Tool"
+        name="portal_catalog"
+>
+  <index name="SearchableText"
+         remove="True"
+  />
+  <index meta_type="SolrIndex"
+         name="SearchableText"
+  >
+    <property name="solr_uri_static" />
+    <property name="solr_uri_env_var">SOLR_URI</property>
+  </index>
+  <index name="Title"
+         remove="True"
+  />
+  <index name="Description"
+         remove="True"
+  />
+</object>
