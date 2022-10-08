@@ -52,6 +52,11 @@ setup(
         'Zope2',
         #'solrpy',  # we have a private copy until solrpy fixes some bugs
     ],
+    extras_require={
+        "test": [
+            "zope.testrunner",
+        ],
+    },
     test_suite='alm.solrindex.tests.test_suite',
     entry_points="""\
     [z3c.autoinclude.plugin]
