@@ -287,6 +287,7 @@ from future.standard_library import install_aliases
 install_aliases()
 
 import cgi
+import six
 import sys
 import socket
 import http.client
@@ -299,7 +300,16 @@ from xml.sax.handler import ContentHandler
 from xml.sax.saxutils import escape, quoteattr
 from xml.dom.minidom import parseString
 
-from Products.CMFPlone.utils import safe_unicode
+
+def safe_text(value, encoding='utf-8'):
+    if isinstance(value, six.text_type):
+        return value
+    elif isinstance(value, six.binary_type):
+        try:
+            value = six.text_type(value, encoding)
+        except (UnicodeDecodeError):
+            value = value.decode('utf-8', 'replace')
+    return value
 
 
 __version__ = "0.5"
@@ -366,8 +376,8 @@ class SolrConnection(object):
                 your PEM key file and certificate file
 
         """
-        self.scheme, self.host, self.path = urllib.parse.urlparse(safe_unicode(url), 'http')[:3]
-        self.url = url
+        self.url = url = safe_text(url)
+        self.scheme, self.host, self.path = urllib.parse.urlparse(url, 'http')[:3]
 
         assert self.scheme in ('http', 'https')
 
@@ -743,7 +753,7 @@ class SolrConnection(object):
         attempts = 2  # allow up to 2 attempts
         while attempts:
             try:
-                self.conn.request('POST', url, safe_unicode(body), headers)
+                self.conn.request('POST', url, safe_text(body), headers)
                 return check_response_status(self.conn.getresponse())
             except (socket.error,
                     http.client.ImproperConnectionState,
