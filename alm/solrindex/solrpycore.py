@@ -299,6 +299,11 @@ from xml.sax.handler import ContentHandler
 from xml.sax.saxutils import escape, quoteattr
 from xml.dom.minidom import parseString
 
+try:
+    unicode
+except NameError:
+    unicode = str
+
 __version__ = "0.5"
 
 __all__ = ['SolrException', 'SolrConnection', 'Response']
@@ -363,6 +368,9 @@ class SolrConnection(object):
                 your PEM key file and certificate file
 
         """
+
+        if not isinstance(url, unicode):
+            url = unicode(url)
 
         self.scheme, self.host, self.path = urllib.parse.urlparse(url, 'http')[:3]
         self.url = url
@@ -741,7 +749,10 @@ class SolrConnection(object):
         attempts = 2  # allow up to 2 attempts
         while attempts:
             try:
-                self.conn.request('POST', url, body.encode('UTF-8'), headers)
+                if not isinstance(body, unicode):
+                    body = unicode(body)
+
+                self.conn.request('POST', url, body, headers)
                 return check_response_status(self.conn.getresponse())
             except (socket.error,
                     http.client.ImproperConnectionState,
