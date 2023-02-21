@@ -279,7 +279,7 @@ Enter a raw query, without processing the returned HTML contents.
     >>> print c.raw_query(q='id:[* TO *]', wt='python', rows='10')
 
 """
-from __future__ import unicode_literals
+# from __future__ import unicode_literals
 from builtins import str
 from past.builtins import basestring
 from builtins import object
@@ -292,7 +292,7 @@ import sys
 import socket
 import http.client
 import codecs
-import urllib.request, urllib.parse, urllib.error
+import urllib.parse
 import datetime
 from io import StringIO
 from xml.sax import make_parser
@@ -309,6 +309,20 @@ def safe_text(value, encoding='utf-8'):
             value = six.text_type(value, encoding)
         except (UnicodeDecodeError):
             value = value.decode('utf-8', 'replace')
+    return value
+
+
+def safe_bytes(value, encoding='utf-8'):
+    if isinstance(value, six.text_type):
+        value = value.encode(encoding)
+    return value
+
+
+def safe_nativestring(value, encoding='utf-8'):
+    if six.PY2 and isinstance(value, six.text_type):
+        return safe_bytes(value)
+    elif not six.PY2 and isinstance(value, six.binary_type):
+        return safe_text(value)
     return value
 
 
@@ -376,7 +390,8 @@ class SolrConnection(object):
                 your PEM key file and certificate file
 
         """
-        self.url = url = safe_text(url)
+        # In Py2 this should be encoded, but a unicode string in Py3
+        self.url = url = safe_nativestring(url)
         self.scheme, self.host, self.path = urllib.parse.urlparse(url, 'http')[:3]
 
         assert self.scheme in ('http', 'https')
@@ -753,7 +768,7 @@ class SolrConnection(object):
         attempts = 2  # allow up to 2 attempts
         while attempts:
             try:
-                self.conn.request('POST', url, safe_text(body), headers)
+                self.conn.request('POST', url, safe_nativestring(body), headers)
                 return check_response_status(self.conn.getresponse())
             except (socket.error,
                     http.client.ImproperConnectionState,
