@@ -768,7 +768,7 @@ class SolrConnection(object):
         attempts = 2  # allow up to 2 attempts
         while attempts:
             try:
-                self.conn.request('POST', url, safe_nativestring(body), headers)
+                self.conn.request('POST', url, body_massage(body), headers)
                 return check_response_status(self.conn.getresponse())
             except (socket.error,
                     http.client.ImproperConnectionState,
@@ -780,6 +780,16 @@ class SolrConnection(object):
                 attempts -= 1
                 if not attempts:
                     raise
+
+
+def body_massage(body):
+    """Massage the request body before sending it out to solr.
+    On python 2 run it through `safe_nativestring`.
+    In python 3 encode it as UTF-8.
+    """
+    if _python_version >= 3:
+        return body.encode("utf-8")
+    return safe_nativestring(body)
 
 
 # ===================================================================
