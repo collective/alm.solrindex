@@ -42,6 +42,12 @@
     name="solr.TrieDateField"
     />
 
+<utility
+    factory=".handlers.DateFieldHandler"
+    provides=".interfaces.ISolrFieldHandler"
+    name="solr.DatePointField"
+    />
+
 <!-- Use TextFieldHandler for fields of Java class "solr.TextField" -->
 <utility
     factory=".handlers.TextFieldHandler"

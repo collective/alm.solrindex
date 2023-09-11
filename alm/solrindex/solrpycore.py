@@ -520,7 +520,7 @@ class SolrConnection(object):
 
         params['fl'] = fields
         params['version'] = self.response_version
-        params['wt'] = 'standard'
+        params['wt'] = 'xml'
 
         request = urllib.parse.urlencode(params, doseq=True)
 

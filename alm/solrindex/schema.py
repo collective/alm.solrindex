@@ -37,8 +37,9 @@ class SolrSchema(object):
 
     def download_from(self, solr_uri):
         """Get schema.xml from a running Solr instance"""
-        schema_uris = ('%s/admin/file/?file=schema.xml',         # solr 1.3
-                       '%s/admin/get-file.jsp?file=schema.xml')  # solr 1.2
+        schema_uris = ('%s/schema?wt=schema.xml',   # solr 7-9
+                       '%s/admin/file/?file=schema.xml',         # solr 1.3
+                       '%s/admin/get-file.jsp?file=schema.xml',)
         for i, uri in enumerate(schema_uris):
             uri = uri % solr_uri
             log.debug('getting schema from %s', uri)
@@ -64,10 +65,10 @@ class SolrSchema(object):
             self.defaultSearchField = e.text.strip()
 
         types = {}
-        for e in tree.findall('types/fieldType'):
+        for e in tree.xpath('fieldTypes/fieldType|fieldType'):
             types[e.attrib['name']] = e
 
-        for e in tree.findall('fields/field'):
+        for e in tree.xpath('fields/field|field'):
             t = types[e.attrib['type']]
             self.fields.append(SolrField(e, t))
 
