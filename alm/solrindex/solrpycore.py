@@ -840,10 +840,15 @@ class Response(object):
             start = 0
 
         start += len(self.results)
-        params = dict(self._params)
+        try:
+            params = dict(self.header['params'])
+        except (AttributeError, KeyError):
+            params = dict(self._params)
         params['start'] = start
         q = params['q']
         del params['q']
+        if 'fl' in params:
+            params['fields'] = params['fl']
         return self._connection.query(q, **params)
 
     def previous_batch(self):

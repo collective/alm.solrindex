@@ -55,6 +55,7 @@ from alm.solrindex.solrpycore import SolrConnection
 disable_solr = os.environ.get('DISABLE_SOLR')
 
 log = logging.getLogger(__name__)
+RESULT_LIMIT = 2147483647
 
 
 @implementer(ISolrIndex)
@@ -323,6 +324,16 @@ class SolrIndex(PropertyManager, SimpleItem):
 
         log.debug("querying: %r", solr_params)
         response = cm.connection.query(**transcoded_params)
+        # Handle pagination
+        num_found = int(response.numFound)
+        results = list(response.results)
+        next_response = response
+        while len(results) < min(num_found, RESULT_LIMIT):
+            next_response = next_response.next_batch()
+            if len(next_response) == 0:
+                break
+            results.extend(next_response.results)
+        response.results[:] = results
         if 'solr_callback' in request:
             # Call a function with the Solr response object
             callback = request['solr_callback']
